@@ -1,0 +1,43 @@
+{#- 메일 본문. 네이버가 <style>을 지우므로 모든 모양은 style="" 로 인라인한다. day.html.j2 도 이 매크로를 쓴다. -#}
+{% macro mail_body(v) -%}
+{%- set font = "font-family:-apple-system,BlinkMacSystemFont,Malgun Gothic,Apple SD Gothic Neo,sans-serif;" -%}
+{%- set link = "color:#1a4fd6;text-decoration:underline;" -%}
+{%- set item_box = "border:1px solid #e3e3e3;border-radius:6px;padding:8px 10px;margin:0 0 8px;" -%}
+{%- set more = "font-size:12px;" -%}
+<div style="{{ font }}font-size:14px;line-height:1.6;color:#222;background:#fff;max-width:640px;margin:0 auto;padding:16px;text-align:left;">
+<div style="font-size:11px;color:#888;margin:0 0 8px;">{{ v.mail_title }} · {{ v.label }} · 읽는 시간 {{ v.minutes }}분</div>
+<div style="font-size:20px;font-weight:800;border-bottom:3px double #222;padding:0 0 4px;margin:0 0 10px;">{{ v.mail_title }}</div>
+{% for c in v.corners %}
+<h2 style="font-size:11px;font-weight:700;color:#888;letter-spacing:1px;margin:14px 0 4px;">{{ c.label }}</h2>
+{% if not c.entries %}
+<div style="{{ item_box }}color:#888;">{{ c.empty_note }}</div>
+{% endif %}
+{% for it in c.entries %}
+{% if c.key == "one_line" %}
+<div style="{{ item_box }}"><a href="{{ it.url }}" style="{{ link }}">{{ it.title }}</a> — {{ it.summary }}<div style="text-align:right;margin:2px 0 0;"><a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div></div>
+{% elif c.key == "github" %}
+<div style="{{ item_box }}"><a href="{{ it.url }}" style="{{ link }}"><b>{{ it.title }}</b></a>{% for t in it.tags %} <span style="display:inline-block;font-size:10px;border:1px solid #aaa;border-radius:3px;padding:0 4px;margin-left:4px;color:#555;">{{ t }}</span>{% endfor %}<br>{{ it.summary }}<div style="text-align:right;margin:2px 0 0;"><a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div></div>
+{% elif c.key == "try_this" %}
+<div style="background:#f4f4f4;border-left:3px solid #222;padding:8px 10px;margin:0 0 8px;"><a href="{{ it.url }}" style="{{ link }}">{{ it.title }}</a> — {{ it.summary }} <a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div>
+{% elif c.key == "term" %}
+<div style="margin:0 0 8px;"><a href="{{ it.url }}" style="{{ link }}"><b>{{ it.title }}</b></a> — {{ it.summary }} <a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div>
+{% else %}
+<div style="{{ item_box }}"><a href="{{ it.url }}" style="{{ link }}">{{ it.title }}</a><br>{{ it.summary }}<div style="text-align:right;margin:2px 0 0;"><a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div></div>
+{% endif %}
+{% endfor %}
+{% endfor %}
+<div style="font-size:11px;color:#888;margin:16px 0 0;border-top:1px solid #e3e3e3;padding:8px 0 0;"><a href="{{ v.index_url }}" style="{{ link }}">지난 호 전체 보기</a></div>
+</div>
+{%- endmacro %}
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ v.subject }}</title>
+{% block head_extra %}{% endblock %}
+</head>
+<body style="margin:0;padding:0;background:#fff;">
+{{ mail_body(v) }}
+</body>
+</html>

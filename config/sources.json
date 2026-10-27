@@ -1,0 +1,17 @@
+{
+  "rss": [
+    {"name": "OpenAI", "url": "https://openai.com/news/rss.xml"},
+    {"name": "Google AI", "url": "https://blog.google/technology/ai/rss/"},
+    {"name": "Hugging Face", "url": "https://huggingface.co/blog/feed.xml"},
+    {"name": "GitHub Blog", "url": "https://github.blog/feed/"},
+    {"name": "Simon Willison", "url": "https://simonwillison.net/atom/everything/"},
+    {"name": "AI타임스", "url": "https://www.aitimes.com/rss/allArticle.xml"}
+  ],
+  "rss_max_age_hours": 48,
+  "github_topics": ["mcp", "mcp-server", "agent-skills", "claude-code", "ai-agents", "llm-tools"],
+  "github_created_within_days": 30,
+  "hn_keywords": ["AI", "LLM", "agent", "MCP", "Claude", "GPT", "Gemini"],
+  "hn_min_points": 100,
+  "max_candidates": 60,
+  "fetch_text_limit": 25
+}

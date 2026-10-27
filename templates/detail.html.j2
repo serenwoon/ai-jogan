@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ v.page_title }}</title>
+<style>
+  body { margin: 0; background: #fff; color: #222; font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; font-size: 15px; line-height: 1.7; }
+  .page { max-width: 680px; margin: 0 auto; padding: 20px 16px 40px; }
+  a { color: #1a4fd6; text-decoration: underline; }
+  .crumb { font-size: 12px; color: #888; margin-bottom: 8px; }
+  h1 { font-size: 20px; line-height: 1.4; margin: 0 0 8px; }
+  .tag { display: inline-block; font-size: 11px; border: 1px solid #aaa; border-radius: 3px; padding: 0 5px; margin-right: 4px; color: #555; }
+  .lead { color: #555; margin: 8px 0 0; }
+  h2 { font-size: 12px; font-weight: 700; color: #888; letter-spacing: 1px; margin: 22px 0 4px; }
+  p { margin: 0; white-space: pre-line; }
+  .warn { border-left: 3px solid #222; padding: 6px 10px; background: #f4f4f4; }
+  .sources { margin: 0; padding: 0; list-style: none; }
+  .foot { margin-top: 32px; padding-top: 10px; border-top: 1px solid #e3e3e3; font-size: 12px; color: #888; }
+</style>
+</head>
+<body>
+<div class="page">
+<div class="crumb"><a href="index.html">{{ v.mail_title }} {{ v.label }}</a> › {{ v.corner_label }}</div>
+<h1>{{ v.item.title }}</h1>
+{% if v.item.tags %}<div>{% for t in v.item.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+<p class="lead">{{ v.item.summary }}</p>
+{% for s in v.sections %}
+<h2>{{ s.heading }}</h2>
+{% if s.warn %}<p class="warn">{{ s.text }}</p>{% else %}<p>{{ s.text }}</p>{% endif %}
+{% endfor %}
+<h2>원문</h2>
+<ul class="sources">
+{% for src in v.item.sources %}<li>{% if src.url %}<a href="{{ src.url }}">{{ src.title }}</a>{% else %}{{ src.title }}{% endif %}</li>
+{% endfor %}</ul>
+<div class="foot"><a href="index.html">{{ v.mail_title }} {{ v.label }} 목차</a> · <a href="../index.html">지난 호 전체 보기</a></div>
+</div>
+</body>
+</html>

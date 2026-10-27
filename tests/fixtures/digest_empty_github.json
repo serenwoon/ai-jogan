@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-28",
+  "headline": "오늘은 스킬 한 가지만 짚는다",
+  "corners": {
+    "one_line": {
+      "items": [
+        {
+          "id": "skills-open-spec",
+          "title": "에이전트 스킬 규격이 공개 표준으로 넘어갔다",
+          "summary": "스킬 폴더 구조와 메타데이터 규격이 공개 문서로 정리돼, 도구가 달라도 같은 스킬을 재사용할 수 있게 됐다.",
+          "tags": ["스킬"],
+          "detail": {
+            "what": "스킬 규격이 독립된 공개 명세로 옮겨졌다.",
+            "why_now": "여러 도구가 같은 형식을 읽기 시작했다.",
+            "use_at_work": "반복 절차를 스킬 폴더로 묶어 팀이 같이 쓴다.",
+            "lesson": "지침은 짧게, 반복 작업은 스크립트로 뺀다.",
+            "caution": "규격이 초기 버전이라 필드 이름이 바뀔 수 있다."
+          },
+          "sources": [
+            {"title": "스킬 규격 공개 문서", "url": "https://example.com/skills/spec"}
+          ]
+        }
+      ],
+      "empty_note": null
+    },
+    "automation": {
+      "items": [],
+      "empty_note": "오늘은 새 사례 없음"
+    },
+    "github": {
+      "items": [],
+      "empty_note": "오늘은 새 사례 없음"
+    },
+    "try_this": {
+      "items": [
+        {
+          "id": "try-skill-folder",
+          "title": "오늘 해 볼 것: 반복 업무 하나를 스킬 폴더로 묶기",
+          "summary": "매주 하는 작업 하나를 골라 지침 파일 한 장과 스크립트 하나로 묶어 본다.",
+          "tags": [],
+          "detail": {
+            "what": "폴더를 만들고 지침 파일에 입력, 절차, 출력 형식을 적는다.",
+            "why_now": "규격이 정리된 지금이 시작하기 쉽다.",
+            "use_at_work": "주간 보고서 서식 맞추기가 적당하다.",
+            "lesson": "절차를 줄이고 실패한 부분만 보탠다.",
+            "caution": "민감한 자료는 예시에 넣지 않는다."
+          },
+          "sources": [
+            {"title": "시작 가이드", "url": "https://example.com/skills/getting-started"}
+          ]
+        }
+      ],
+      "empty_note": null
+    },
+    "term": {
+      "items": [
+        {
+          "id": "term-tool-calling",
+          "title": "도구 호출(Tool Calling)",
+          "summary": "모델이 정해진 형식으로 외부 기능을 불러 쓰겠다고 요청하는 방식.",
+          "tags": ["용어"],
+          "detail": {
+            "what": "모델이 함수 이름과 인자를 구조화해 내놓으면 실행 환경이 대신 돌린다.",
+            "why_now": "에이전트 이야기의 전제가 되는 용어다.",
+            "use_at_work": "도구를 고를 때 도구 호출 지원 여부를 먼저 본다.",
+            "lesson": "모델은 요청만 하고 실행은 바깥에서 한다.",
+            "caution": "실행 권한을 넓게 열면 잘못된 호출도 실행된다."
+          },
+          "sources": [
+            {"title": "용어 설명", "url": "https://example.com/glossary/tool-calling"}
+          ]
+        }
+      ],
+      "empty_note": null
+    }
+  }
+}

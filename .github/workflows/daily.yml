@@ -1,0 +1,445 @@
+# AI 조간 — 매일 06:00 KST(UTC 21:00).
+# 인증은 구독 토큰(CLAUDE_CODE_OAUTH_TOKEN)만 쓴다. API 키 비밀값은 어디에도 두지 않는다.
+#
+# 세 작업으로 나눈다.
+#   edit    — 읽기 권한만. 수집하고 프롬프트를 만든 뒤 Claude를 돌린다. Claude 단계 뒤에는
+#             저장소 파이썬도 git도 돌리지 않고, 결과 파일을 아티팩트로 올리기만 한다.
+#   publish — 새로 받은 저장소에서 아티팩트의 정해진 파일만 꺼내 검사·렌더·커밋·발송한다.
+#   notify  — 앞 작업이 실패하거나 멈추면 실패 메일을 보낸다. 의존성 설치 없이 표준 라이브러리로.
+name: AI 조간
+
+on:
+  schedule: [{cron: "0 21 * * *"}]
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "KST 날짜 YYYY-MM-DD (비우면 오늘)"
+        required: false
+
+concurrency: {group: ai-jogan, cancel-in-progress: false}
+
+permissions: {contents: read}
+
+env:
+  TZ: Asia/Seoul
+  PYTHONDONTWRITEBYTECODE: "1"
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+jobs:
+  edit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions: {contents: read}
+    # 한 겹 덧댄 방어다. Claude가 .git/config 에 fsmonitor 를 심어 두는 경우만 무력화한다.
+    # Claude 단계는 GITHUB_ENV 에 GIT_CONFIG_PARAMETERS·BASH_ENV 를 더해 뒤 단계의 실행을
+    # 바꿀 수 있으므로, 이것으로 정리 단계의 코드 실행을 막지 못한다. 그래서 수집 결과는
+    # 해시로, 아티팩트는 ID로 고정하고, 어느 작업도 캐시를 복원하지 않는다.
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.fsmonitor
+      GIT_CONFIG_VALUE_0: "false"
+    outputs:
+      date: ${{ steps.date.outputs.date }}
+      week: ${{ steps.date.outputs.week }}
+      is_monday: ${{ steps.date.outputs.monday }}
+      collect_sha: ${{ steps.hash.outputs.collect_sha }}
+      collect_id: ${{ steps.upload_collect.outputs.artifact-id }}
+      digest_id: ${{ steps.upload_digest.outputs.artifact-id }}
+      weekly_id: ${{ steps.upload_weekly.outputs.artifact-id }}
+      failed_stage: >-
+        ${{ steps.checkout.outcome == 'failure' && 'checkout' ||
+        steps.python.outcome == 'failure' && 'python' ||
+        steps.install.outcome == 'failure' && 'install' ||
+        steps.date.outcome == 'failure' && 'date' ||
+        steps.collect.outcome == 'failure' && 'collect' ||
+        steps.prompt.outcome == 'failure' && 'prompt' ||
+        steps.hash.outcome == 'failure' && 'hash' ||
+        steps.upload_collect.outcome == 'failure' && 'upload_collect' ||
+        steps.edit.outcome == 'failure' && 'edit' ||
+        steps.upload_digest.outcome == 'failure' && 'upload_digest' ||
+        '' }}
+      weekly_outcome: >-
+        ${{ steps.date.outputs.monday != 'true' && 'skipped' ||
+        (steps.weekly_edit.outcome == 'success' && steps.upload_weekly.outcome == 'success') && 'success' ||
+        'failure' }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v6
+        timeout-minutes: 2
+        with:
+          persist-credentials: false
+
+      # 캐시는 어느 작업에서도 쓰지 않는다. 이 작업의 Claude 단계 뒤에 도는 코드가 실행기
+      # 토큰으로 캐시를 써 둘 수 있고, 그걸 비밀값을 가진 publish 가 복원하면 안 된다.
+      - id: python
+        uses: actions/setup-python@v6
+        timeout-minutes: 2
+        with:
+          python-version: "3.12"
+
+      - id: install
+        name: 의존성 설치
+        timeout-minutes: 4
+        run: pip install -r requirements.txt
+
+      # KST 날짜(수동 실행이면 입력값), 월요일 여부, 지난 ISO 주
+      - id: date
+        name: 날짜
+        timeout-minutes: 1
+        env:
+          INPUT_DATE: ${{ github.event.inputs.date }}
+        run: |
+          python - "$INPUT_DATE" <<'PY'
+          import os, sys
+          from datetime import date
+          from jogan.dates import kst_today, previous_iso_week
+          arg = sys.argv[1].strip()
+          d = date.fromisoformat(arg) if arg else kst_today()
+          monday = "true" if d.weekday() == 0 else "false"
+          week = previous_iso_week(d)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write(f"date={d.isoformat()}\nmonday={monday}\nweek={week}\n")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as f:
+              f.write(f"DATE={d.isoformat()}\nWEEK={week}\n")
+          print(f"날짜 {d.isoformat()} · 월요일 {monday} · 지난주 {week}")
+          PY
+
+      - id: collect
+        name: 수집
+        timeout-minutes: 8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m jogan.cli collect --date "$DATE"
+
+      # Claude 단계 전에 프롬프트를 둘 다 만들고, 수집 결과를 작업 폴더 밖에 떼어 둔다.
+      - id: prompt
+        name: 프롬프트 · 수집 결과 떼어 두기
+        timeout-minutes: 1
+        env:
+          IS_MONDAY: ${{ steps.date.outputs.monday }}
+        run: |
+          python -m jogan.cli prompt --kind daily --date "$DATE"
+          weekly=false
+          if [ "$IS_MONDAY" = "true" ]; then
+            if python -m jogan.cli prompt --kind weekly --date "$DATE" --out .work/prompt-weekly.md; then
+              weekly=true
+            else
+              echo "주간 프롬프트 실패 — 주간만 건너뛴다"
+            fi
+          fi
+          echo "weekly=$weekly" >> "$GITHUB_OUTPUT"
+          mkdir -p "$RUNNER_TEMP/collect"
+          cp "data/$DATE/candidates.json" "$RUNNER_TEMP/collect/candidates.json"
+          if [ -f data/stars.json ]; then cp data/stars.json "$RUNNER_TEMP/collect/stars.json"; fi
+
+      # 수집 결과는 publish 가 검사 없이 data/ 에 커밋한다. Claude가 돌기 전에 해시를 재어
+      # 작업 출력으로 넘기고, publish 는 받은 파일이 이 값과 같을 때만 옮긴다.
+      - id: hash
+        name: 수집 결과 해시
+        timeout-minutes: 1
+        run: |
+          sums() {  # sums <폴더> — 정해진 순서로 "<sha256>  <이름>" 줄을 찍는다
+            local name h
+            for name in candidates.json stars.json; do
+              if [ -f "$1/$name" ]; then
+                h="$(sha256sum < "$1/$name")" || return 1
+                printf '%s  %s\n' "${h%% *}" "$name"
+              fi
+            done
+          }
+          sha="$(sums "$RUNNER_TEMP/collect")"
+          case "$sha" in
+            *"  candidates.json"*) ;;
+            *) echo "::error::candidates.json 해시를 재지 못했다"; exit 1 ;;
+          esac
+          printf '%s\n' "$sha"
+          b64="$(printf '%s' "$sha" | base64 -w0)"
+          echo "collect_sha=$b64" >> "$GITHUB_OUTPUT"
+
+      - id: upload_collect
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 1
+        with:
+          name: collect
+          path: ${{ runner.temp }}/collect/
+          if-no-files-found: error
+          retention-days: 3
+          overwrite: true
+
+      - id: edit
+        name: 편집 (Claude)
+        timeout-minutes: 18
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: "Read .work/prompt.md and follow it exactly."
+          claude_args: '--model claude-sonnet-5-5 --max-turns 40 --allowedTools "Read,Write,WebFetch,WebSearch" --disallowedTools "Bash,Edit,MultiEdit,NotebookEdit"'
+
+      # 주간 단계가 그날 digest를 다시 쓰지 못하게, 주간보다 먼저 올린다.
+      - id: upload_digest
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 1
+        with:
+          name: digest
+          path: issues/${{ steps.date.outputs.date }}/digest.json
+          if-no-files-found: error
+          retention-days: 3
+          overwrite: true
+
+      - id: weekly_edit
+        name: 주간 노트 (Claude)
+        if: steps.prompt.outputs.weekly == 'true'
+        continue-on-error: true
+        timeout-minutes: 15
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: "Read .work/prompt-weekly.md and follow it exactly."
+          claude_args: '--model claude-opus-5-5 --max-turns 30 --allowedTools "Read,Write,WebFetch,WebSearch" --disallowedTools "Bash,Edit,MultiEdit,NotebookEdit"'
+
+      - id: upload_weekly
+        if: steps.weekly_edit.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 1
+        with:
+          name: weekly
+          path: weekly/${{ steps.date.outputs.week }}.md
+          if-no-files-found: ignore
+          retention-days: 3
+          overwrite: true
+
+  publish:
+    needs: edit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions: {contents: write}
+    env:
+      DATE: ${{ needs.edit.outputs.date }}
+      WEEK: ${{ needs.edit.outputs.week }}
+      IS_MONDAY: ${{ needs.edit.outputs.is_monday }}
+    outputs:
+      failed_stage: >-
+        ${{ steps.checkout.outcome == 'failure' && 'publish_checkout' ||
+        steps.python.outcome == 'failure' && 'publish_python' ||
+        steps.install.outcome == 'failure' && 'publish_install' ||
+        steps.download.outcome == 'failure' && 'download' ||
+        steps.place.outcome == 'failure' && 'place' ||
+        steps.check.outcome == 'failure' && 'check' ||
+        steps.render.outcome == 'failure' && 'render' ||
+        steps.commit.outcome == 'failure' && 'commit' ||
+        steps.send.outcome == 'failure' && 'send' ||
+        steps.weekly_notice.outcome == 'failure' && 'weekly_notice' ||
+        '' }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v6
+        timeout-minutes: 2
+
+      # 비밀값을 가진 작업이라 캐시를 복원하지 않는다(edit 의 python 단계 주석 참고).
+      - id: python
+        uses: actions/setup-python@v6
+        timeout-minutes: 2
+        with:
+          python-version: "3.12"
+
+      - id: install
+        name: 의존성 설치
+        timeout-minutes: 4
+        run: pip install -r requirements.txt
+
+      # 아티팩트는 작업 폴더 밖에 받고, 정해진 이름의 일반 파일만 제자리로 옮긴다.
+      # edit 의 업로드 단계가 돌려준 ID로만 받는다. 같은 이름으로 다시 올린 아티팩트는
+      # ID가 바뀌므로 받지 않는다.
+      # 이 배치는 actions/download-artifact@v4 기준이다. v4는 ID로 받으면 하나만 받아도
+      # <path>/<이름>/ 아래로 푼다. v5부터는 ID 하나면 <path> 바로 아래로 풀어서
+      # download_weekly 가 in/weekly/ 를 만들지 않는다. 판을 올리면 place·weekly_check 경로도 고친다.
+      - id: download
+        uses: actions/download-artifact@v4
+        timeout-minutes: 2
+        with:
+          artifact-ids: ${{ needs.edit.outputs.collect_id }},${{ needs.edit.outputs.digest_id }}
+          path: ${{ runner.temp }}/in
+
+      - id: download_weekly
+        if: env.IS_MONDAY == 'true' && needs.edit.outputs.weekly_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        timeout-minutes: 2
+        with:
+          artifact-ids: ${{ needs.edit.outputs.weekly_id }}
+          path: ${{ runner.temp }}/in
+
+      - id: place
+        name: 정해진 파일만 옮기기
+        timeout-minutes: 1
+        env:
+          COLLECT_SHA: ${{ needs.edit.outputs.collect_sha }}
+        run: |
+          IN="$RUNNER_TEMP/in"
+          only() {  # only <폴더> <허용 이름...> — 다른 것이 있거나 링크면 멈춘다
+            local dir="$1"; shift
+            while IFS= read -r -d '' p; do
+              rel="${p#"$dir"/}"; ok=false
+              for name in "$@"; do if [ "$rel" = "$name" ]; then ok=true; fi; done
+              if ! $ok || [ -L "$p" ] || ! [ -f "$p" ]; then
+                echo "::error::예상하지 않은 아티팩트 항목: $dir/$rel"; exit 1
+              fi
+            done < <(find "$dir" -mindepth 1 -print0)
+          }
+          sums() {  # sums <폴더> — 정해진 순서로 "<sha256>  <이름>" 줄을 찍는다
+            local name h
+            for name in candidates.json stars.json; do
+              if [ -f "$1/$name" ]; then
+                h="$(sha256sum < "$1/$name")" || return 1
+                printf '%s  %s\n' "${h%% *}" "$name"
+              fi
+            done
+          }
+          for f in collect/candidates.json digest/digest.json; do
+            if ! [ -f "$IN/$f" ]; then echo "::error::아티팩트에 $f 가 없다"; exit 1; fi
+          done
+          only "$IN/collect" candidates.json stars.json
+          only "$IN/digest" digest.json
+          # 수집 결과는 검사 없이 커밋되니, edit 이 Claude 전에 잰 해시와 파일 구성까지 같아야 한다.
+          if ! expected="$(printf '%s' "$COLLECT_SHA" | base64 -d)" || [ -z "$expected" ]; then
+            echo "::error::edit 작업이 넘긴 수집 결과 해시를 읽지 못했다"; exit 1
+          fi
+          if ! actual="$(sums "$IN/collect")" || [ "$actual" != "$expected" ]; then
+            echo "::error::수집 아티팩트가 edit 작업에서 잰 해시와 다르다 — 바꿔치기됐을 수 있어 멈춘다"
+            printf '기대한 해시:\n%s\n받은 파일의 해시:\n%s\n' "$expected" "$actual"
+            exit 1
+          fi
+          mkdir -p "data/$DATE" "issues/$DATE"
+          cp "$IN/collect/candidates.json" "data/$DATE/candidates.json"
+          if [ -f "$IN/collect/stars.json" ]; then cp "$IN/collect/stars.json" data/stars.json; fi
+          cp "$IN/digest/digest.json" "issues/$DATE/digest.json"
+
+      - id: check
+        name: 검사
+        timeout-minutes: 1
+        run: python -m jogan.cli check --date "$DATE"
+
+      # 월요일만. 노트가 없거나 검사에서 떨어지면 주간만 실패로 치고 일간은 계속한다.
+      - id: weekly_check
+        name: 주간 노트 검사
+        if: env.IS_MONDAY == 'true'
+        continue-on-error: true
+        timeout-minutes: 1
+        run: |
+          IN="$RUNNER_TEMP/in/weekly"
+          if ! [ -d "$IN" ]; then echo "주간 노트가 없다"; exit 1; fi
+          extra="$(find "$IN" -mindepth 1 ! -name "$WEEK.md" -print)"
+          if [ -n "$extra" ] || [ -L "$IN/$WEEK.md" ] || ! [ -f "$IN/$WEEK.md" ]; then
+            echo "::error::주간 아티팩트에 $WEEK.md 말고 다른 것이 있거나 파일이 아니다"; exit 1
+          fi
+          # 받은 자리($RUNNER_TEMP/in/weekly/)에서 먼저 검사하고, 통과한 노트만 weekly/ 로 옮긴다.
+          # 떨어진 노트가 작업 폴더에 남으면 커밋 단계의 pull --rebase 가 막힌다.
+          python - "$RUNNER_TEMP/in" "$WEEK" <<'PY'
+          import sys
+          from pathlib import Path
+          import jogan.cli as cli
+          sys.exit(cli.main(["check-weekly", "--week", sys.argv[2]], root=Path(sys.argv[1])))
+          PY
+          mkdir -p weekly
+          cp "$IN/$WEEK.md" "weekly/$WEEK.md"
+
+      - id: render
+        name: 렌더
+        timeout-minutes: 2
+        run: python -m jogan.cli render --date "$DATE"
+
+      # 발송보다 먼저 올린다. 메일의 「자세히 →」가 가리키는 Pages 페이지가 있어야 한다.
+      - id: commit
+        name: 커밋·푸시
+        timeout-minutes: 2
+        env:
+          WEEKLY_OK: ${{ steps.weekly_check.outcome }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- data issues docs
+          if [ "$WEEKLY_OK" = "success" ]; then git add -- "weekly/$WEEK.md"; fi
+          if git diff --cached --quiet; then
+            echo "바뀐 것이 없어 커밋하지 않는다"
+          else
+            git commit -m "조간 $DATE"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
+
+      # Pages 배포를 3분까지 기다린다. 늦어도 메일은 보낸다.
+      - id: pages
+        name: Pages 반영 기다리기
+        continue-on-error: true
+        timeout-minutes: 4
+        run: |
+          url="$(python - <<'PY'
+          import json, os
+          day = os.environ["DATE"]
+          site = json.load(open("config/site.json", encoding="utf-8"))
+          digest = json.load(open(f"issues/{day}/digest.json", encoding="utf-8"))
+          item = digest["corners"]["one_line"]["items"][0]["id"]
+          print(f"{site['base_url'].rstrip('/')}/{day}/{item}.html")
+          PY
+          )"
+          end=$((SECONDS + 180))
+          while [ "$SECONDS" -lt "$end" ]; do
+            code="$(curl -s --max-time 20 -o /dev/null -w '%{http_code}' "$url" || true)"
+            if [ "$code" = "200" ]; then echo "Pages 반영 확인: $url"; exit 0; fi
+            sleep 10
+          done
+          echo "3분 기다려도 $url 이 200이 아니다 — 그대로 보낸다"
+
+      - id: send
+        name: 발송
+        timeout-minutes: 2
+        env:
+          NAVER_USER: ${{ secrets.NAVER_USER }}
+          NAVER_APP_PASSWORD: ${{ secrets.NAVER_APP_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python -m jogan.cli send
+
+      - id: weekly_notice
+        name: 주간 실패 알림
+        if: env.IS_MONDAY == 'true' && steps.weekly_check.outcome != 'success'
+        timeout-minutes: 2
+        env:
+          NAVER_USER: ${{ secrets.NAVER_USER }}
+          NAVER_APP_PASSWORD: ${{ secrets.NAVER_APP_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python -m jogan.cli fail-mail --date "$DATE" --stage weekly --run-url "$RUN_URL"
+
+  # 앞 작업이 실패·취소·시간 초과로 끝나면 실패 메일 한 통. 의존성 설치 없이 돈다.
+  notify:
+    needs: [edit, publish]
+    if: always() && (needs.edit.result != 'success' || needs.publish.result != 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v6
+        timeout-minutes: 2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+        timeout-minutes: 2
+        with:
+          python-version: "3.12"
+
+      - name: 실패 메일
+        timeout-minutes: 2
+        env:
+          NAVER_USER: ${{ secrets.NAVER_USER }}
+          NAVER_APP_PASSWORD: ${{ secrets.NAVER_APP_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          DATE: ${{ needs.edit.outputs.date }}
+          STAGE: >-
+            ${{ needs.edit.outputs.failed_stage ||
+            needs.publish.outputs.failed_stage ||
+            needs.edit.result != 'success' && format('edit ({0})', needs.edit.result) ||
+            format('publish ({0})', needs.publish.result) }}
+        run: python -m jogan.cli fail-mail --date "$DATE" --stage "$STAGE" --run-url "$RUN_URL"

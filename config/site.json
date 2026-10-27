@@ -1,0 +1,5 @@
+{
+  "base_url": "https://serenwoon.github.io/ai-jogan",
+  "subject_format": "AI 조간 {label} — {headline}",
+  "mail_title": "AI 조간"
+}

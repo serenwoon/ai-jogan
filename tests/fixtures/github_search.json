@@ -1,0 +1,23 @@
+{
+  "total_count": 3,
+  "items": [
+    {
+      "full_name": "example/alpha",
+      "html_url": "https://github.com/example/alpha",
+      "description": "Alpha tool for agents",
+      "stargazers_count": 300
+    },
+    {
+      "full_name": "example/beta",
+      "html_url": "https://github.com/example/beta",
+      "description": null,
+      "stargazers_count": 900
+    },
+    {
+      "full_name": "example/gamma",
+      "html_url": "https://github.com/example/gamma",
+      "description": "Gamma helper",
+      "stargazers_count": 40
+    }
+  ]
+}

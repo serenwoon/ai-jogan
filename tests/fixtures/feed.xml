@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example Feed</title>
+    <link>https://example.com/</link>
+    <description>Fixture feed</description>
+    <item>
+      <title>Fresh post one</title>
+      <link>https://example.com/posts/one?utm_source=feed</link>
+      <pubDate>Tue, 27 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Fresh post two</title>
+      <link>https://example.com/posts/two</link>
+      <pubDate>Mon, 26 Oct 2026 23:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Almost stale post (47h)</title>
+      <link>https://example.com/posts/three</link>
+      <pubDate>Sun, 25 Oct 2026 22:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Stale post (49h)</title>
+      <link>https://example.com/posts/stale</link>
+      <pubDate>Sun, 25 Oct 2026 20:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Old post</title>
+      <link>https://example.com/posts/old</link>
+      <pubDate>Tue, 20 Oct 2026 09:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

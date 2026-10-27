@@ -1,0 +1,5 @@
+{#- 그날 호의 웹 페이지. 메일과 같은 본문에 상대 링크를 쓰고, 웹이므로 <style> 이 허용된다. -#}
+{% extends "email.html.j2" %}
+{% block head_extra %}<style>
+  body { margin: 0; background: #fff; color: #222; }
+</style>{% endblock %}
