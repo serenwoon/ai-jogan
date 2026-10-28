@@ -3,37 +3,99 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>answer-me-with-html: AI 답변을 읽기 쉬운 한 장짜리 웹페이지로 — AI 조간 10/28(수)</title>
+<title>AI 답을 한 장짜리 웹페이지로 바꿔 주는 스킬 — AI 조간 10/28(수)</title>
+<meta name="description" content="스킬 answer-me-with-html은 AI가 마크다운 초안만 쓰면 도구가 웹페이지를 만든다. 제작자 측정으로 출력 토큰이 평균 4,893개에서 612개로 줄었다.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI 답을 한 장짜리 웹페이지로 바꿔 주는 스킬">
+<meta property="og:description" content="스킬 answer-me-with-html은 AI가 마크다운 초안만 쓰면 도구가 웹페이지를 만든다. 제작자 측정으로 출력 토큰이 평균 4,893개에서 612개로 줄었다.">
+<meta property="og:url" content="https://serenwoon.github.io/ai-jogan/2026-10-28/answer-me-with-html.html">
+<meta property="og:image" content="https://opengraph.githubassets.com/81c2241c531e6c21028ea564457feaa726dcac831dbb57bec85eb46f0155a790/QingYunA/answer-me-with-html">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8432a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%EC%A1%B0%3C/text%3E%3C/svg%3E">
 <style>
-  body { margin: 0; background: #fff; color: #222; font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; font-size: 15px; line-height: 1.7; }
-  .page { max-width: 680px; margin: 0 auto; padding: 20px 16px 40px; }
-  a { color: #1a4fd6; text-decoration: underline; }
-  .crumb { font-size: 12px; color: #888; margin-bottom: 8px; }
-  h1 { font-size: 20px; line-height: 1.4; margin: 0 0 8px; }
-  .tag { display: inline-block; font-size: 11px; border: 1px solid #aaa; border-radius: 3px; padding: 0 5px; margin-right: 4px; color: #555; }
-  .lead { color: #555; margin: 8px 0 0; }
-  h2 { font-size: 12px; font-weight: 700; color: #888; letter-spacing: 1px; margin: 22px 0 4px; }
-  p { margin: 0; white-space: pre-line; }
-  .warn { border-left: 3px solid #222; padding: 6px 10px; background: #f4f4f4; }
-  .sources { margin: 0; padding: 0; list-style: none; }
-  .foot { margin-top: 32px; padding-top: 10px; border-top: 1px solid #e3e3e3; font-size: 12px; color: #888; }
+  :root {
+    --bg: #f2efe8; --paper: #fffdf8; --ink: #1f1d1a; --text: #3f3b35; --muted: #8b8478;
+    --rule: #e7e1d6; --accent: #a8432a; --tint: #f5efe3;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo, Batang, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161513; --paper: #1d1c19; --ink: #f1ece3; --text: #d6d0c5; --muted: #958e82;
+            --rule: #34312c; --accent: #e07a5c; --tint: #27241f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.8; -webkit-text-size-adjust: 100%; }
+  a { color: inherit; }
+  .page { max-width: 680px; margin: 0 auto; background: var(--paper); min-height: 100vh; padding: 0 0 48px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 24px 14px; border-bottom: 3px double var(--ink); }
+  .brand { font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -0.5px; }
+  .date { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .date:hover, .brand:hover { color: var(--accent); }
+  article { padding: 0 24px; }
+  .kicker { margin: 28px 0 0; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
+  h1 { font-family: var(--serif); font-size: clamp(24px, 6vw, 32px); line-height: 1.35; font-weight: 700; color: var(--ink); letter-spacing: -0.8px; margin: 10px 0 0; text-wrap: balance; word-break: keep-all; }
+  .tags { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; line-height: 1.7; color: var(--muted); background: var(--bg); padding: 0 8px; }
+  .lead { font-size: 18px; line-height: 1.7; color: var(--ink); margin: 18px 0 0; word-break: keep-all; }
+  figure { margin: 24px -24px 0; }
+  figure img { display: block; width: 100%; height: auto; background: var(--tint); }
+  .body { margin: 26px 0 0; }
+  p { margin: 0; white-space: pre-line; word-break: keep-all; }
+  h2 { font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 34px 0 8px; letter-spacing: -0.3px; }
+  .work { margin: 34px 0 0; background: var(--tint); padding: 18px 20px; }
+  .work h2, .note h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson { margin: 34px 0 0; border-left: 3px solid var(--accent); padding: 2px 0 2px 18px; }
+  .lesson h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson p { font-family: var(--serif); font-size: 18px; line-height: 1.7; color: var(--ink); }
+  .note { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .note h2 { color: var(--muted); }
+  .note p { font-size: 14px; color: var(--muted); }
+  .sources { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .sources h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted); margin: 0 0 6px; }
+  .sources ul { margin: 0; padding: 0; list-style: none; }
+  .sources li { padding: 6px 0; }
+  .sources a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+  .sources a:hover { text-decoration-color: var(--accent); }
+  .host { display: block; font-size: 12px; color: var(--muted); }
+  nav.more { margin: 40px 24px 0; border-top: 3px double var(--ink); padding: 14px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  nav.more a { text-decoration: none; display: block; }
+  nav.more small { display: block; font-size: 12px; color: var(--muted); }
+  nav.more span { font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1.5; }
+  nav.more a:hover span { color: var(--accent); }
+  nav.more .next { text-align: right; grid-column: 2; }
+  .foot { margin: 28px 24px 0; font-size: 13px; color: var(--muted); }
+  .foot a { color: var(--muted); }
+  @media (min-width: 700px) { .page { margin-top: 24px; min-height: 0; } figure { margin: 24px 0 0; } }
 </style>
 </head>
 <body>
 <div class="page">
-<div class="crumb"><a href="index.html">AI 조간 10/28(수)</a> › ③ 깃허브·스킬 픽</div>
-<h1>answer-me-with-html: AI 답변을 읽기 쉬운 한 장짜리 웹페이지로</h1>
-<div><span class="tag">스킬</span><span class="tag">라이선스 미확인</span></div><p class="lead">어려운 질문의 답을 글 더미 대신 도표가 든 HTML 한 페이지로 만들어 주는 에이전트 스킬이다.</p>
-<h2>무엇인가</h2>
-<p>에이전트 스킬(AI 도구에 추가하는 작업 안내 묶음)이다. AI가 짧은 마크다운 초안만 쓰면 함께 들어 있는 도구가 표·도표·코드가 담긴 한 페이지로 바꿔 준다.</p><h2>왜 지금 화제인가</h2>
-<p>저장소 소개글에 따르면 AI가 직접 HTML을 쓸 때보다 쓰는 토큰이 약 8분의 1이고 시간도 31초에서 12초로 줄었다. 다만 저자 측정치다.</p><h2>내 업무에 쓸 자리</h2>
-<p>비교 검토나 회의 전 배경 설명처럼 표와 그림이 도움 되는 질문을 한 페이지로 받아 팀에 공유할 수 있다. 한 줄 질문에는 페이지를 만들지 않는다.</p><h2>배울 점</h2>
-<p>AI가 모든 것을 직접 쓰게 하지 말고, 글처럼 AI가 잘하는 부분만 맡기고 서식은 정해진 도구에 넘기면 빠르고 값싸다.</p><h2>주의</h2>
-<p class="warn">Node.js 20 이상이 필요하고 설치 때 외부 스크립트를 내려받아 실행한다. 설치 전 내용을 확인해야 한다. 수집 자료에서 라이선스는 확인하지 못했다.</p><h2>원문</h2>
-<ul class="sources">
-<li><a href="https://github.com/QingYunA/answer-me-with-html">QingYunA/answer-me-with-html</a></li>
+<header class="top">
+<a class="brand" href="index.html">AI 조간</a>
+<a class="date" href="index.html">2026년 10월 28일 수요일</a>
+</header>
+<article>
+<div class="kicker">깃허브·스킬 픽</div>
+<h1>AI 답을 한 장짜리 웹페이지로 바꿔 주는 스킬</h1>
+<div class="tags"><span class="tag">스킬</span><span class="tag">Claude Code</span></div><p class="lead">스킬 answer-me-with-html은 AI가 마크다운 초안만 쓰면 도구가 웹페이지를 만든다. 제작자 측정으로 출력 토큰이 평균 4,893개에서 612개로 줄었다.</p>
+<figure><img src="https://opengraph.githubassets.com/81c2241c531e6c21028ea564457feaa726dcac831dbb57bec85eb46f0155a790/QingYunA/answer-me-with-html" alt="AI 답을 한 장짜리 웹페이지로 바꿔 주는 스킬" loading="lazy" referrerpolicy="no-referrer"></figure>
+<div class="body">
+<p>AI 에이전트에 설치하는 스킬(작업 요령 묶음)이다. 어려운 질문을 하면 에이전트가 짧은 마크다운 초안을 쓰고, 함께 설치되는 도구가 도표와 표가 있는 페이지로 바꾼다. 페이지는 내 컴퓨터에 저장된다.</p>
+<h2>왜 지금</h2>
+<p>별도 모델 호출 없이 답을 읽기 좋게 만드는 스킬이 늘고 있다. 이 저장소는 별 4,557개로 오늘 후보 중 상위권이다.</p>
+</div>
+<section class="work"><h2>내 일에 써 본다면</h2><p>두 서비스 중 하나를 고르는 비교 보고서를 쓸 때, 비교표와 결론이 든 한 장짜리 페이지를 먼저 받아 초안으로 삼을 수 있다.</p></section>
+<section class="lesson"><h2>가져갈 점</h2><p>AI에게 최종 형식까지 쓰게 하지 말고 내용만 쓰게 하면 빠르고 싸다. 형식은 정해진 도구가 맡는 편이 낫다.</p></section>
+<section class="note"><h2>조심할 점</h2><p>속도와 토큰 수치는 제작자가 3개 주제로 잰 값이다. 라이선스는 이번에 읽은 본문에서 확인하지 못했다. 실행에는 Node.js 20 이상이 필요하다.</p></section>
+<section class="sources"><h2>원문</h2>
+<ul>
+<li><a href="https://github.com/QingYunA/answer-me-with-html">QingYunA/answer-me-with-html</a><span class="host">github.com</span></li>
 </ul>
-<div class="foot"><a href="index.html">AI 조간 10/28(수) 목차</a> · <a href="../index.html">지난 호 전체 보기</a></div>
+</section>
+</article>
+<nav class="more">
+<a href="samjjeomsam-carter.html"><small>← 앞 기사</small><span>삼쩜삼, 사내 AI 에이전트 8개를 한 창구로 묶었다</span></a><a class="next" href="aihot-industry-site.html"><small>다음 기사 →</small><span>AI가 알아서 소식을 모아 일보를 쓰는 사이트 뼈대가 공개됐다</span></a></nav>
+<div class="foot"><a href="index.html">10/28(수) 호 전체</a> · <a href="../index.html">지난 호 모두 보기</a></div>
 </div>
 </body>
 </html>
