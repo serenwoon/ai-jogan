@@ -1,3 +1,4 @@
+import smtplib
 from datetime import date
 from email import message_from_bytes, policy
 
@@ -99,3 +100,46 @@ def test_failure_mail_escapes_stage_and_run_url():
     assert "<b>x</b>" not in html and "<s>" not in html
     assert "&lt;b&gt;x&lt;/b&gt;&amp;" in html
     assert "a=1&amp;b=&quot;2&quot;&lt;s&gt;" in html
+
+
+class PickySMTP(FakeSMTP):
+    """정해진 아이디만 받아 주는 가짜 서버. 나머지는 535로 거절한다."""
+
+    accept = "sender"
+
+    def login(self, user, password):
+        self.logins.append((user, password))
+        if user != PickySMTP.accept:
+            raise smtplib.SMTPAuthenticationError(535, b"5.7.1 Username and Password not accepted")
+
+
+def test_naver_login_retries_with_id_only_after_535():
+    # 네이버는 계정에 따라 주소 전체 대신 아이디만 받는다(10-28 첫 실행에서 535).
+    PickySMTP.accept = "sender"
+    send_mail("제목", "<p>본문</p>", "본문", ENV, smtp_factory=PickySMTP)
+    logins = [s.logins for s in FakeSMTP.instances]
+    assert logins == [[("sender@naver.com", "app-pw")], [("sender", "app-pw")]]
+    assert len(FakeSMTP.instances[1].sent) == 1
+    assert FakeSMTP.instances[1].sent[0]["From"] == "sender@naver.com"
+
+
+def test_full_address_that_works_is_tried_once():
+    PickySMTP.accept = "sender@naver.com"
+    send_mail("제목", "<p>본문</p>", "본문", ENV, smtp_factory=PickySMTP)
+    assert len(FakeSMTP.instances) == 1
+
+
+def test_auth_error_raised_when_every_form_is_rejected():
+    PickySMTP.accept = "nobody"
+    with pytest.raises(smtplib.SMTPAuthenticationError):
+        send_mail("제목", "<p>본문</p>", "본문", ENV, smtp_factory=PickySMTP)
+    assert [s.logins[0][0] for s in FakeSMTP.instances] == ["sender@naver.com", "sender"]
+    assert all(not s.sent for s in FakeSMTP.instances)
+
+
+def test_non_naver_address_is_not_retried():
+    PickySMTP.accept = "nobody"
+    env = {**ENV, "NAVER_USER": "sender@example.com"}
+    with pytest.raises(smtplib.SMTPAuthenticationError):
+        send_mail("제목", "<p>본문</p>", "본문", env, smtp_factory=PickySMTP)
+    assert len(FakeSMTP.instances) == 1

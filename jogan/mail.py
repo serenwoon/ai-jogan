@@ -40,9 +40,26 @@ def send_mail(
     msg.set_content(text)
     msg.add_alternative(html, subtype="html")
 
-    with smtp_factory(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
-        smtp.login(env["NAVER_USER"], env["NAVER_APP_PASSWORD"])
-        smtp.send_message(msg)
+    last_error: smtplib.SMTPAuthenticationError | None = None
+    for user in _login_names(env["NAVER_USER"]):
+        with smtp_factory(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+            try:
+                smtp.login(user, env["NAVER_APP_PASSWORD"])
+            except smtplib.SMTPAuthenticationError as err:
+                last_error = err
+                continue
+            smtp.send_message(msg)
+            return
+    raise last_error or MailConfigError("로그인할 이름이 없습니다: NAVER_USER")
+
+
+def _login_names(address: str) -> list[str]:
+    """로그인에 써 볼 이름. 네이버 주소면 주소 전체 다음에 아이디만으로 한 번 더 해 본다."""
+    names = [address]
+    local, _, domain = address.partition("@")
+    if domain.lower() == "naver.com" and local:
+        names.append(local)
+    return names
 
 
 def failure_mail(d: date, stage: str, run_url: str) -> tuple[str, str, str]:
