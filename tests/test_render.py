@@ -232,3 +232,39 @@ def test_email_plain_text_keeps_titles_and_detail_urls():
     assert item["title"] in text
     assert f"({item_url(SITE['base_url'], TODAY, item['id'])})" in text
     assert "읽는 시간" in text
+
+
+def test_text_extractor_state_does_not_shadow_htmlparser():
+    # 파이썬 3.12.15의 HTMLParser는 내부에 _pending(목록)을 둔다. 같은 이름의 정수를 두면 close()가 깨졌다(10-28 첫 실행).
+    from html.parser import HTMLParser
+
+    from jogan.render import _TextExtractor
+
+    base = set(vars(HTMLParser()))
+    own_attrs = set(vars(_TextExtractor())) - base
+    assert own_attrs, "자체 상태가 하나는 있어야 한다"
+    assert all(name == "parts" or name.startswith("_jg_") for name in own_attrs), own_attrs
+    own_methods = {n for n in vars(_TextExtractor) if not n.startswith("__")} - set(dir(HTMLParser))
+    assert all(n.startswith("_jg_") for n in own_methods), own_methods
+
+
+def test_html_to_text_survives_parser_with_pending_list(monkeypatch):
+    # 3.12.15처럼 close()가 self._pending 목록을 합치는 HTMLParser에서도 돈다.
+    from html.parser import HTMLParser
+
+    from jogan.render import html_to_text
+
+    original_init = HTMLParser.reset
+    original_close = HTMLParser.close
+
+    def reset(self):
+        original_init(self)
+        self._pending = []
+
+    def close(self):
+        self.rawdata += "".join(self._pending)
+        original_close(self)
+
+    monkeypatch.setattr(HTMLParser, "reset", reset)
+    monkeypatch.setattr(HTMLParser, "close", close)
+    assert html_to_text('<p>가 <a href="https://example.com">나</a></p>') == "가 나 (https://example.com)"

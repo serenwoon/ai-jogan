@@ -184,58 +184,59 @@ _SKIP = {"head", "title", "style", "script"}
 
 
 class _TextExtractor(HTMLParser):
+    # 자체 상태는 _jg_ 접두사로 둔다. HTMLParser가 판마다 내부 속성(예: 3.12.15의 _pending)을 늘려서, 같은 이름을 쓰면 close()가 깨진다.
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.parts: list[str] = []
-        self._skip = 0
-        self._pending = 0  # 다음 글 앞에 넣을 줄바꿈 수(1 = 줄바꿈, 2 = 빈 줄)
-        self._href: str | None = None
-        self._link_text: list[str] = []
+        self._jg_skip = 0
+        self._jg_pending = 0  # 다음 글 앞에 넣을 줄바꿈 수(1 = 줄바꿈, 2 = 빈 줄)
+        self._jg_href: str | None = None
+        self._jg_link_text: list[str] = []
 
-    def _break(self, n: int) -> None:
-        self._pending = max(self._pending, n)
+    def _jg_break(self, n: int) -> None:
+        self._jg_pending = max(self._jg_pending, n)
 
-    def _put(self, s: str) -> None:
-        if self._pending and self.parts:
-            self.parts.append("\n" * self._pending)
-        self._pending = 0
+    def _jg_put(self, s: str) -> None:
+        if self._jg_pending and self.parts:
+            self.parts.append("\n" * self._jg_pending)
+        self._jg_pending = 0
         self.parts.append(s)
 
     def handle_starttag(self, tag, attrs):
         if tag in _SKIP:
-            self._skip += 1
+            self._jg_skip += 1
         elif tag == "br":
-            self._pending = min(2, self._pending + 1)
+            self._jg_pending = min(2, self._jg_pending + 1)
         elif tag in _BLOCK_GAP:
-            self._break(2)
+            self._jg_break(2)
         elif tag in _BLOCK_LINE:
-            self._break(1)
+            self._jg_break(1)
         elif tag == "a":
-            self._href = dict(attrs).get("href") or ""
-            self._link_text = []
+            self._jg_href = dict(attrs).get("href") or ""
+            self._jg_link_text = []
 
     def handle_endtag(self, tag):
         if tag in _SKIP:
-            self._skip = max(0, self._skip - 1)
+            self._jg_skip = max(0, self._jg_skip - 1)
         elif tag in _BLOCK_GAP:
-            self._break(2)
+            self._jg_break(2)
         elif tag in _BLOCK_LINE:
-            self._break(1)
-        elif tag == "a" and self._href is not None:
-            href, self._href = self._href, None
-            text = re.sub(r"\s+", " ", "".join(self._link_text)).strip()
+            self._jg_break(1)
+        elif tag == "a" and self._jg_href is not None:
+            href, self._jg_href = self._jg_href, None
+            text = re.sub(r"\s+", " ", "".join(self._jg_link_text)).strip()
             if href and text != href:
-                self._put(f" ({href})" if text else href)
+                self._jg_put(f" ({href})" if text else href)
 
     def handle_data(self, data):
-        if self._skip:
+        if self._jg_skip:
             return
         data = re.sub(r"\s+", " ", data)  # 소스의 줄바꿈은 공백일 뿐, 줄은 블록 태그가 만든다
-        if self._pending and not data.strip():
+        if self._jg_pending and not data.strip():
             return
-        if self._href is not None:
-            self._link_text.append(data)
-        self._put(data)
+        if self._jg_href is not None:
+            self._jg_link_text.append(data)
+        self._jg_put(data)
 
 
 def html_to_text(html: str) -> str:
