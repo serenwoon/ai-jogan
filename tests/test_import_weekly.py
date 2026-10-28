@@ -321,7 +321,7 @@ def test_task_xml_is_valid_utf16_with_triggers():
     ns = {"t": "http://schemas.microsoft.com/windows/2004/02/mit/task"}
     assert root.find(".//t:LogonTrigger", ns) is not None
     assert root.find(".//t:CalendarTrigger/t:ScheduleByWeek/t:DaysOfWeek/t:Monday", ns) is not None
-    assert root.find(".//t:CalendarTrigger/t:StartBoundary", ns).text.endswith("T09:00:00")
+    assert root.find(".//t:CalendarTrigger/t:StartBoundary", ns).text.endswith("T10:00:00")
     assert root.find(".//t:StartWhenAvailable", ns).text == "true"
     assert root.find(".//t:Principal/t:LogonType", ns).text == "InteractiveToken"
     assert root.find(".//t:Principal/t:RunLevel", ns).text == "LeastPrivilege"

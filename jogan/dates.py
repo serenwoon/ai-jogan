@@ -1,4 +1,4 @@
-"""KST 기준 날짜 도우미. 예약 실행은 UTC 21:00이므로 모든 날짜는 여기서 KST로 얻는다."""
+"""KST 기준 날짜 도우미. 예약 실행은 UTC 22:41~00:13(KST 07:41~09:13)이므로 모든 날짜는 여기서 KST로 얻는다."""
 import json
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path

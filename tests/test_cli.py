@@ -376,7 +376,7 @@ def _minutes(block: str) -> int:
 def test_workflow_contract():
     text = read(WORKFLOW)
     for needle in [
-        'cron: "0 21 * * *"',
+        'cron: "41 22 * * *"', 'cron: "23 23 * * *"', 'cron: "13 0 * * *"',
         "workflow_dispatch",
         "TZ: Asia/Seoul",
         "concurrency: {group: ai-jogan, cancel-in-progress: false}",
@@ -401,7 +401,50 @@ def test_workflow_contract():
 
 def test_workflow_has_three_jobs():
     jobs = _jobs(read(WORKFLOW))
-    assert list(jobs) == ["edit", "publish", "notify"]
+    assert list(jobs) == ["gate", "edit", "publish", "notify"]
+
+
+def test_no_schedule_on_the_hour():
+    # 정각 예약은 GitHub가 늦추거나 버린다(10-29 06:00 예약이 돌지 않았다).
+    crons = re.findall(r'cron: "(\d+) (\d+) \* \* \*"', read(WORKFLOW))
+    assert len(crons) >= 2
+    assert all(minute != "0" for minute, _ in crons)
+
+
+def test_gate_skips_only_scheduled_runs_whose_issue_exists():
+    jobs = _jobs(read(WORKFLOW))
+    gate = jobs["gate"]
+    assert "permissions: {contents: read}" in gate and "persist-credentials: false" in gate
+    decide = _step(_steps(gate), "decide")
+    assert '[ "$EVENT" = "schedule" ] && [ -f "issues/$day/digest.json" ]' in decide
+    assert "needs: gate" in jobs["edit"] and "if: needs.gate.outputs.run == 'true'" in jobs["edit"]
+    notify = jobs["notify"]
+    assert "needs: [gate, edit, publish]" in notify
+    assert "needs.gate.outputs.run == 'true'" in notify  # 건너뛴 날은 실패 메일을 보내지 않는다
+
+
+def test_gate_decision_shell(tmp_path):
+    import shutil as _sh
+    bash = _sh.which("bash")
+    if not bash:
+        pytest.skip("bash 없음")
+    script = _step(_steps(_jobs(read(WORKFLOW))["gate"]), "decide").split("run: |\n", 1)[1]
+    script = "\n".join(line[4:] if line.startswith("    ") else line for line in script.splitlines())
+    day = subprocess.run([bash, "-c", "TZ=Asia/Seoul date +%F"], capture_output=True, text=True).stdout.strip()
+
+    def decide(event, has_issue):
+        work = tmp_path / f"{event}-{has_issue}"
+        (work / "issues" / day).mkdir(parents=True)
+        if has_issue:
+            (work / "issues" / day / "digest.json").write_text("{}", encoding="utf-8")
+        out = work / "out.txt"
+        env = {**os.environ, "EVENT": event, "GITHUB_OUTPUT": str(out), "TZ": "Asia/Seoul"}
+        subprocess.run([bash, "-c", script], cwd=work, env=env, check=True, capture_output=True)
+        return out.read_text(encoding="utf-8").strip()
+
+    assert decide("schedule", True) == "run=false"
+    assert decide("schedule", False) == "run=true"
+    assert decide("workflow_dispatch", True) == "run=true"
 
 
 def test_edit_job_is_read_only_and_runs_nothing_after_claude():
@@ -449,8 +492,10 @@ def test_publish_job_order_and_weekly_handling():
 
 def test_notify_job_runs_always_without_pip():
     notify = _jobs(read(WORKFLOW))["notify"]
-    assert "needs: [edit, publish]" in notify
-    assert "if: always() && (needs.edit.result != 'success' || needs.publish.result != 'success')" in notify
+    assert "needs: [gate, edit, publish]" in notify
+    cond = " ".join(notify.split("if: >-", 1)[1].split("runs-on:", 1)[0].split())
+    assert cond == ("always() && (needs.gate.result != 'success' || (needs.gate.outputs.run == 'true' && "
+                    "(needs.edit.result != 'success' || needs.publish.result != 'success')))")
     assert "pip install" not in notify
     assert "python -m jogan.cli fail-mail" in notify
     assert "needs.edit.outputs.failed_stage" in notify and "needs.publish.outputs.failed_stage" in notify

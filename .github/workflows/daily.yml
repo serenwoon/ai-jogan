@@ -1,7 +1,10 @@
-# AI 조간 — 매일 06:00 KST(UTC 21:00).
+# AI 조간 — 매일 07:41 KST에 돌아 08시 무렵 메일이 온다. 08:23·09:13 은 예비 실행이다.
+# GitHub 예약 실행은 붐비면 늦어지거나 버려진다(정각이 가장 붐빈다). 그래서 정각을 피하고
+# 예비 실행을 둘 더 둔다. 예비 실행은 그날 호가 이미 저장소에 있으면 gate 에서 바로 끝난다.
 # 인증은 구독 토큰(CLAUDE_CODE_OAUTH_TOKEN)만 쓴다. API 키 비밀값은 어디에도 두지 않는다.
 #
-# 세 작업으로 나눈다.
+# 네 작업으로 나눈다.
+#   gate    — 예약 실행이면 그날 호가 이미 나갔는지 보고, 나갔으면 나머지를 건너뛴다.
 #   edit    — 읽기 권한만. 수집하고 프롬프트를 만든 뒤 Claude를 돌린다. Claude 단계 뒤에는
 #             저장소 파이썬도 git도 돌리지 않고, 결과 파일을 아티팩트로 올리기만 한다.
 #   publish — 새로 받은 저장소에서 아티팩트의 정해진 파일만 꺼내 검사·렌더·커밋·발송한다.
@@ -9,7 +12,8 @@
 name: AI 조간
 
 on:
-  schedule: [{cron: "0 21 * * *"}]
+  # UTC 기준. 22:41 = 07:41 KST, 23:23 = 08:23 KST, 00:13 = 09:13 KST(모두 같은 KST 날짜)
+  schedule: [{cron: "41 22 * * *"}, {cron: "23 23 * * *"}, {cron: "13 0 * * *"}]
   workflow_dispatch:
     inputs:
       date:
@@ -26,7 +30,40 @@ env:
   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
+  # 예약 실행만 건너뛸 수 있다. 손으로 돌린 실행(workflow_dispatch)은 언제나 돈다.
+  # 그날 digest.json 은 발송 직전에 커밋되므로, 있으면 그날 호는 이미 나갔거나 나가는 중이었다.
+  # (발송만 실패한 날은 notify 가 실패 메일을 이미 보냈다 — 손으로 다시 돌린다.)
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {contents: read}
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - uses: actions/checkout@v6
+        timeout-minutes: 2
+        with:
+          persist-credentials: false
+          sparse-checkout: issues
+
+      - id: decide
+        name: 오늘 호가 이미 나갔는지
+        timeout-minutes: 1
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          day="$(date +%F)"
+          if [ "$EVENT" = "schedule" ] && [ -f "issues/$day/digest.json" ]; then
+            echo "$day 호가 이미 있다 — 이번 예약 실행은 건너뛴다"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$EVENT · $day — 돈다"
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
   edit:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions: {contents: read}
@@ -421,9 +458,13 @@ jobs:
         run: python -m jogan.cli fail-mail --date "$DATE" --stage weekly --run-url "$RUN_URL"
 
   # 앞 작업이 실패·취소·시간 초과로 끝나면 실패 메일 한 통. 의존성 설치 없이 돈다.
+  # gate 가 건너뛰기로 한 날은 edit·publish 가 skipped 라도 알리지 않는다.
   notify:
-    needs: [edit, publish]
-    if: always() && (needs.edit.result != 'success' || needs.publish.result != 'success')
+    needs: [gate, edit, publish]
+    if: >-
+      always() && (needs.gate.result != 'success' ||
+      (needs.gate.outputs.run == 'true' &&
+      (needs.edit.result != 'success' || needs.publish.result != 'success')))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     permissions: {contents: read}
@@ -446,7 +487,8 @@ jobs:
           MAIL_TO: ${{ secrets.MAIL_TO }}
           DATE: ${{ needs.edit.outputs.date }}
           STAGE: >-
-            ${{ needs.edit.outputs.failed_stage ||
+            ${{ needs.gate.result != 'success' && 'gate' ||
+            needs.edit.outputs.failed_stage ||
             needs.publish.outputs.failed_stage ||
             needs.edit.result != 'success' && format('edit ({0})', needs.edit.result) ||
             format('publish ({0})', needs.publish.result) }}
