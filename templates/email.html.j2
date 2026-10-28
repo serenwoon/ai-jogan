@@ -1,33 +1,91 @@
-{#- 메일 본문. 네이버가 <style>을 지우므로 모든 모양은 style="" 로 인라인한다. day.html.j2 도 이 매크로를 쓴다. -#}
+{#- 메일 본문. 네이버가 <style>을 지우므로 모든 모양은 style="" 로 인라인하고, 배치는 표로 한다.
+    day.html.j2 도 이 매크로를 쓴다.
+    색: 먹 #1f1d1a · 본문 #3f3b35 · 흐림 #8b8478 · 줄 #e7e1d6 · 종이 #fffdf8 · 바탕 #f2efe8 · 강조(벽돌) #a8432a -#}
 {% macro mail_body(v) -%}
-{%- set font = "font-family:-apple-system,BlinkMacSystemFont,Malgun Gothic,Apple SD Gothic Neo,sans-serif;" -%}
-{%- set link = "color:#1a4fd6;text-decoration:underline;" -%}
-{%- set item_box = "border:1px solid #e3e3e3;border-radius:6px;padding:8px 10px;margin:0 0 8px;" -%}
-{%- set more = "font-size:12px;" -%}
-<div style="{{ font }}font-size:14px;line-height:1.6;color:#222;background:#fff;max-width:640px;margin:0 auto;padding:16px;text-align:left;">
-<div style="font-size:11px;color:#888;margin:0 0 8px;">{{ v.mail_title }} · {{ v.label }} · 읽는 시간 {{ v.minutes }}분</div>
-<div style="font-size:20px;font-weight:800;border-bottom:3px double #222;padding:0 0 4px;margin:0 0 10px;">{{ v.mail_title }}</div>
+{%- set sans = "font-family:-apple-system,BlinkMacSystemFont,Apple SD Gothic Neo,Pretendard,Malgun Gothic,sans-serif;word-break:keep-all;" -%}
+{%- set serif = "font-family:Noto Serif KR,Nanum Myeongjo,AppleMyungjo,Batang,Georgia,serif;word-break:keep-all;" -%}
+{%- set kicker = sans ~ "font-size:12px;font-weight:700;letter-spacing:0.5px;color:#a8432a;" -%}
+{%- set more = sans ~ "font-size:13px;font-weight:600;color:#a8432a;text-decoration:none;" -%}
+{%- set body = sans ~ "font-size:15px;line-height:1.7;color:#3f3b35;" -%}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f2efe8" style="background:#f2efe8;">
+<tr><td align="center" style="padding:20px 10px 28px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#fffdf8" style="max-width:600px;background:#fffdf8;text-align:left;">
+
+<tr><td style="padding:28px 24px 0;">
+<div style="{{ sans }}font-size:12px;color:#8b8478;letter-spacing:0.5px;">{{ v.long_label }} · {{ v.minutes }}분 읽기</div>
+<div style="{{ serif }}font-size:34px;line-height:1.2;font-weight:700;color:#1f1d1a;letter-spacing:-1px;margin:6px 0 0;">{{ v.mail_title }}</div>
+<div style="border-top:3px double #1f1d1a;margin:14px 0 0;font-size:0;line-height:0;">&nbsp;</div>
+</td></tr>
+
 {% for c in v.corners %}
-<h2 style="font-size:11px;font-weight:700;color:#888;letter-spacing:1px;margin:14px 0 4px;">{{ c.label }}</h2>
+{% if c.key == "one_line" %}
+<tr><td style="padding:20px 24px 4px;">
+<div style="{{ kicker }}">{{ c.label }}</div>
+{% for it in c.entries %}
+{% if it.image %}<a href="{{ it.url }}" style="text-decoration:none;"><img src="{{ it.image }}" alt="{{ it.title }}" width="552" style="display:block;width:100%;max-width:552px;height:auto;border:0;margin:12px 0 0;"></a>{% endif %}
+<div style="margin:14px 0 0;"><a href="{{ it.url }}" style="{{ serif }}font-size:23px;line-height:1.4;font-weight:700;color:#1f1d1a;text-decoration:none;letter-spacing:-0.5px;">{{ it.title }}</a></div>
+<div style="{{ body }}margin:10px 0 0;">{{ it.summary }}</div>
+<div style="margin:10px 0 0;"><a href="{{ it.url }}" style="{{ more }}">{{ v.more }}</a></div>
+{% endfor %}
+</td></tr>
+
+{% elif c.key == "try_this" %}
+<tr><td style="padding:28px 24px 0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5efe3" style="background:#f5efe3;">
+<tr><td style="padding:18px 18px 16px;">
+<div style="{{ kicker }}">{{ c.label }}</div>
+{% for it in c.entries %}
+<div style="margin:8px 0 0;"><a href="{{ it.url }}" style="{{ serif }}font-size:18px;line-height:1.45;font-weight:700;color:#1f1d1a;text-decoration:none;">{{ it.title }}</a></div>
+<div style="{{ body }}font-size:14px;margin:6px 0 0;">{{ it.summary }}</div>
+<div style="margin:8px 0 0;"><a href="{{ it.url }}" style="{{ more }}">{{ v.more }}</a></div>
+{% endfor %}
+</td></tr>
+</table>
+</td></tr>
+
+{% elif c.key == "term" %}
+<tr><td style="padding:28px 24px 0;">
+<div style="{{ kicker }}">{{ c.label }}</div>
+{% for it in c.entries %}
+<div style="margin:8px 0 0;"><a href="{{ it.url }}" style="{{ serif }}font-size:19px;line-height:1.4;font-weight:700;color:#1f1d1a;text-decoration:none;">{{ it.title }}</a></div>
+<div style="{{ body }}font-size:14px;margin:6px 0 0;">{{ it.summary }}</div>
+<div style="margin:8px 0 0;"><a href="{{ it.url }}" style="{{ more }}">{{ v.more }}</a></div>
+{% endfor %}
+</td></tr>
+
+{% else %}
+<tr><td style="padding:28px 24px 0;">
+<div style="border-top:1px solid #e7e1d6;padding:16px 0 0;{{ kicker }}">{{ c.label }}</div>
 {% if not c.entries %}
-<div style="{{ item_box }}color:#888;">{{ c.empty_note }}</div>
+<div style="{{ sans }}font-size:14px;color:#8b8478;margin:8px 0 0;">{{ c.empty_note }}</div>
 {% endif %}
 {% for it in c.entries %}
-{% if c.key == "one_line" %}
-<div style="{{ item_box }}"><a href="{{ it.url }}" style="{{ link }}">{{ it.title }}</a> — {{ it.summary }}<div style="text-align:right;margin:2px 0 0;"><a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div></div>
-{% elif c.key == "github" %}
-<div style="{{ item_box }}"><a href="{{ it.url }}" style="{{ link }}"><b>{{ it.title }}</b></a>{% for t in it.tags %} <span style="display:inline-block;font-size:10px;border:1px solid #aaa;border-radius:3px;padding:0 4px;margin-left:4px;color:#555;">{{ t }}</span>{% endfor %}<br>{{ it.summary }}<div style="text-align:right;margin:2px 0 0;"><a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div></div>
-{% elif c.key == "try_this" %}
-<div style="background:#f4f4f4;border-left:3px solid #222;padding:8px 10px;margin:0 0 8px;"><a href="{{ it.url }}" style="{{ link }}">{{ it.title }}</a> — {{ it.summary }} <a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div>
-{% elif c.key == "term" %}
-<div style="margin:0 0 8px;"><a href="{{ it.url }}" style="{{ link }}"><b>{{ it.title }}</b></a> — {{ it.summary }} <a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div>
-{% else %}
-<div style="{{ item_box }}"><a href="{{ it.url }}" style="{{ link }}">{{ it.title }}</a><br>{{ it.summary }}<div style="text-align:right;margin:2px 0 0;"><a href="{{ it.url }}" style="{{ link }}{{ more }}">자세히 →</a></div></div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:12px 0 0;">
+<tr>
+<td valign="top" style="padding:0;">
+<a href="{{ it.url }}" style="{{ serif }}font-size:18px;line-height:1.45;font-weight:700;color:#1f1d1a;text-decoration:none;">{{ it.title }}</a>
+{% if it.tags %}<div style="margin:6px 0 0;">{% for t in it.tags %}{% if not loop.first %} · {% endif %}<span style="display:inline-block;{{ sans }}font-size:11px;line-height:1.6;color:#6b655b;background:#f2efe8;padding:0 6px;">{{ t }}</span>{% endfor %}</div>{% endif %}
+<div style="{{ body }}font-size:14px;margin:6px 0 0;">{{ it.summary }}</div>
+<div style="margin:8px 0 0;"><a href="{{ it.url }}" style="{{ more }}">{{ v.more }}</a></div>
+</td>
+{% if it.image %}<td valign="top" width="104" style="width:104px;padding:4px 0 0 14px;"><a href="{{ it.url }}" style="text-decoration:none;"><img src="{{ it.image }}" alt="{{ it.title }}" width="104" style="display:block;width:104px;height:auto;border:0;"></a></td>{% endif %}
+</tr>
+</table>
+{% endfor %}
+</td></tr>
 {% endif %}
 {% endfor %}
-{% endfor %}
-<div style="font-size:11px;color:#888;margin:16px 0 0;border-top:1px solid #e3e3e3;padding:8px 0 0;"><a href="{{ v.index_url }}" style="{{ link }}">지난 호 전체 보기</a></div>
+
+<tr><td style="padding:32px 24px 26px;">
+<div style="border-top:1px solid #e7e1d6;padding:14px 0 0;{{ sans }}font-size:12px;line-height:1.7;color:#8b8478;">
+<a href="{{ v.index_url }}" style="{{ sans }}font-size:13px;font-weight:600;color:#1f1d1a;text-decoration:none;">지난 호 모두 보기 →</a><br>
+기사 고르기와 요약은 Claude가 했습니다. 숫자는 원문에서 한 번 더 확인하세요.
 </div>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
 {%- endmacro %}
 <!doctype html>
 <html lang="ko">
@@ -37,7 +95,7 @@
 <title>{{ v.subject }}</title>
 {% block head_extra %}{% endblock %}
 </head>
-<body style="margin:0;padding:0;background:#fff;">
+<body style="margin:0;padding:0;background:#f2efe8;">
 {{ mail_body(v) }}
 </body>
 </html>

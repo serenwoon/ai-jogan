@@ -346,6 +346,14 @@ jobs:
           mkdir -p weekly
           cp "$IN/$WEEK.md" "weekly/$WEEK.md"
 
+      # 원문 페이지의 대표 사진(og:image) 주소만 찾아 issues/<날짜>/images.json 에 둔다.
+      # 사진은 복사하지 않고 원문 사이트 주소를 건다. 실패하면 사진 없이 나간다.
+      - id: images
+        name: 대표 사진 찾기
+        continue-on-error: true
+        timeout-minutes: 2
+        run: python -m jogan.cli images --date "$DATE"
+
       - id: render
         name: 렌더
         timeout-minutes: 2

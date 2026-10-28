@@ -1,4 +1,4 @@
-"""하위 명령: collect prompt check render send fail-mail check-weekly.
+"""하위 명령: collect prompt check images render send fail-mail check-weekly.
 
 `python -m jogan.cli <명령> [--date YYYY-MM-DD]` — 날짜를 안 주거나 빈 값이면 KST 오늘.
 워크플로가 단계마다 하나씩 부른다. 실패는 종료 코드 1과 한국어 메시지로 알리고 추적 정보는 찍지 않는다.
@@ -129,6 +129,33 @@ def cmd_check_weekly(root: Path, week: str) -> int:
     return 0
 
 
+def _images_path(root: Path, day: date) -> Path:
+    return root / "issues" / day.isoformat() / "images.json"
+
+
+def cmd_images(root: Path, day: date) -> int:
+    """항목마다 원문의 대표 사진 주소를 찾아 issues/<날짜>/images.json 에 쓴다. 못 찾아도 실패가 아니다."""
+    from jogan import images
+
+    try:
+        digest = load_digest(_digest_path(root, day))
+    except DigestError as e:
+        print(f"사진 찾기 실패: {e}")
+        return 1
+    found = images.find_images(digest, images.fetch_page, images.image_ok)
+    _write_json(_images_path(root, day), dict(sorted(found.items())))
+    total = sum(len(digest["corners"][k]["items"]) for k in digest["corners"])
+    print(f"사진 {len(found)}/{total}건")
+    return 0
+
+
+def _load_images(root: Path, day: date) -> dict:
+    try:
+        return _read_json(_images_path(root, day))
+    except (OSError, ValueError):
+        return {}
+
+
 def cmd_render(root: Path, day: date) -> int:
     from jogan.render import html_to_text, render_email, render_site
 
@@ -138,8 +165,9 @@ def cmd_render(root: Path, day: date) -> int:
         print(f"렌더 실패: {e}")
         return 1
     site = load_site_config(root)
-    render_site(digest, site, root / "docs", root / "issues")
-    subject, html = render_email(digest, site)
+    pictures = _load_images(root, day)
+    render_site(digest, site, root / "docs", root / "issues", pictures)
+    subject, html = render_email(digest, site, pictures)
     work = root / WORK
     _write(work / "email_subject.txt", subject + "\n")
     _write(work / "email.html", html)
@@ -201,6 +229,7 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--kind", choices=("daily", "weekly"), required=True)
     p.add_argument("--out", default=f"{WORK}/prompt.md", help="저장소 뿌리 기준 출력 경로")
     sub.add_parser("check", parents=[common], help="digest 검사와 7일 중복 검사")
+    sub.add_parser("images", parents=[common], help="원문 대표 사진 주소 찾기")
     sub.add_parser("render", parents=[common], help="docs/ 와 메일 파일 만들기")
     sub.add_parser("send", parents=[common], help=".work/ 의 메일 보내기")
     p = sub.add_parser("fail-mail", parents=[common], help="실패 알림 메일 보내기")
@@ -221,6 +250,8 @@ def main(argv: list[str] | None = None, *, root: Path | None = None) -> int:
         return cmd_prompt(root, day, args.kind, args.out)
     if args.command == "check":
         return cmd_check(root, day)
+    if args.command == "images":
+        return cmd_images(root, day)
     if args.command == "render":
         return cmd_render(root, day)
     if args.command == "send":

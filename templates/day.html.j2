@@ -1,5 +1,7 @@
 {#- 그날 호의 웹 페이지. 메일과 같은 본문에 상대 링크를 쓰고, 웹이므로 <style> 이 허용된다. -#}
 {% extends "email.html.j2" %}
-{% block head_extra %}<style>
-  body { margin: 0; background: #fff; color: #222; }
+{% block head_extra %}<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8432a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%EC%A1%B0%3C/text%3E%3C/svg%3E">
+<style>
+  body { margin: 0; background: #f2efe8; }
+  a:hover { opacity: .75; }
 </style>{% endblock %}

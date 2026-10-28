@@ -3,25 +3,46 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ mail_title }} 지난 호</title>
+<title>{{ mail_title }} — 지난 호</title>
+<meta name="description" content="매일 아침 5분, AI에서 일어난 일을 골라 전합니다.">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8432a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%EC%A1%B0%3C/text%3E%3C/svg%3E">
 <style>
-  body { margin: 0; background: #fff; color: #222; font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; font-size: 15px; line-height: 1.7; }
-  .page { max-width: 680px; margin: 0 auto; padding: 20px 16px 40px; }
-  a { color: #1a4fd6; text-decoration: underline; }
-  h1 { font-size: 20px; font-weight: 800; border-bottom: 3px double #222; padding-bottom: 4px; margin: 0 0 10px; }
-  .sub { font-size: 12px; color: #888; margin: 0 0 12px; }
+  :root {
+    --bg: #f2efe8; --paper: #fffdf8; --ink: #1f1d1a; --text: #3f3b35; --muted: #8b8478;
+    --rule: #e7e1d6; --accent: #a8432a; --tint: #f5efe3;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo, Batang, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161513; --paper: #1d1c19; --ink: #f1ece3; --text: #d6d0c5; --muted: #958e82;
+            --rule: #34312c; --accent: #e07a5c; --tint: #27241f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.7; }
+  .page { max-width: 680px; margin: 0 auto; background: var(--paper); min-height: 100vh; padding: 28px 24px 48px; }
+  h1 { font-family: var(--serif); font-size: 38px; line-height: 1.2; font-weight: 700; color: var(--ink); letter-spacing: -1px; margin: 0; }
+  .sub { font-size: 14px; color: var(--muted); margin: 8px 0 0; padding: 0 0 16px; border-bottom: 3px double var(--ink); }
   ul { margin: 0; padding: 0; list-style: none; }
-  li { border-bottom: 1px solid #e3e3e3; padding: 8px 0; }
-  .date { display: inline-block; min-width: 86px; font-size: 13px; color: #888; }
+  li { border-bottom: 1px solid var(--rule); }
+  li a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 18px 0; text-decoration: none; }
+  .date { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
+  .headline { display: block; font-family: var(--serif); font-size: 19px; font-weight: 700; line-height: 1.45; color: var(--ink); margin: 4px 0 0; word-break: keep-all; }
+  li a:hover .headline { color: var(--accent); }
+  .thumb { width: 96px; aspect-ratio: 1.6; object-fit: cover; background: var(--tint); display: block; }
+  li:first-child .headline { font-size: 23px; }
+  .foot { margin: 28px 0 0; font-size: 13px; color: var(--muted); }
+  @media (min-width: 700px) { .page { margin-top: 24px; min-height: 0; } .thumb { width: 132px; } }
 </style>
 </head>
 <body>
 <div class="page">
 <h1>{{ mail_title }}</h1>
-<p class="sub">최근 {{ entries|length }}호</p>
+<p class="sub">매일 아침 5분, AI에서 일어난 일 · 최근 {{ entries|length }}호</p>
 <ul>
-{% for e in entries %}<li><span class="date">{{ e.label }}</span><a href="{{ e.date }}/index.html">{{ e.headline }}</a></li>
+{% for e in entries %}<li><a href="{{ e.date }}/index.html"><span><span class="date">{{ e.long_label }}</span><span class="headline">{{ e.headline }}</span></span>{% if e.image %}<img class="thumb" src="{{ e.image }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% endif %}</a></li>
 {% endfor %}</ul>
+<p class="foot">기사 고르기와 요약은 Claude가 합니다. 숫자는 원문에서 한 번 더 확인하세요.</p>
 </div>
 </body>
 </html>

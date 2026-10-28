@@ -723,3 +723,44 @@ def test_weekly_check_copies_only_after_passing(tmp_path, good):
     else:
         assert code != 0, log
         assert not (work / "weekly").exists(), "떨어진 노트가 작업 폴더를 더럽혔다"
+
+
+# ---------- images ----------
+
+def test_images_writes_found_pictures_and_render_uses_them(root, monkeypatch):
+    from jogan import images
+
+    put_digest(root, DAY)
+    page = '<meta property="og:image" content="https://cdn.example.com/lead.jpg">'
+    monkeypatch.setattr(images, "fetch_page", lambda url: page)
+    monkeypatch.setattr(images, "image_ok", lambda url: True)
+    assert cli.main(["images", "--date", DAY], root=root) == 0
+    saved = json.loads(read(root / "issues" / DAY / "images.json"))
+    assert saved and set(saved.values()) == {"https://cdn.example.com/lead.jpg"}
+    assert cli.main(["render", "--date", DAY], root=root) == 0
+    assert 'src="https://cdn.example.com/lead.jpg"' in read(root / ".work" / "email.html")
+
+
+def test_images_finding_nothing_is_not_a_failure(root, monkeypatch):
+    from jogan import images
+
+    put_digest(root, DAY)
+    monkeypatch.setattr(images, "fetch_page", lambda url: None)
+    monkeypatch.setattr(images, "image_ok", lambda url: True)
+    assert cli.main(["images", "--date", DAY], root=root) == 0
+    assert json.loads(read(root / "issues" / DAY / "images.json")) == {}
+
+
+def test_render_ignores_broken_images_json(root):
+    put_digest(root, DAY)
+    (root / "issues" / DAY / "images.json").write_text("{깨짐", encoding="utf-8")
+    assert cli.main(["render", "--date", DAY], root=root) == 0
+    assert "<img" not in read(root / ".work" / "email.html")
+
+
+def test_publish_finds_images_after_check_before_render_and_never_blocks():
+    steps = _steps(_jobs(read(WORKFLOW))["publish"])
+    ids = _ids(steps)
+    assert ids.index("check") < ids.index("images") < ids.index("render")
+    step = _step(steps, "images")
+    assert "continue-on-error: true" in step and "jogan.cli images" in step

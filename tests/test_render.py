@@ -15,7 +15,10 @@ OK = load_digest(FIX / "digest_ok.json")
 EMPTY_GH = load_digest(FIX / "digest_empty_github.json")
 TODAY = date(2026, 10, 28)
 
-DETAIL_HEADINGS = ("무엇인가", "왜 지금 화제인가", "내 업무에 쓸 자리", "배울 점", "주의", "원문")
+DETAIL_HEADINGS = ("왜 지금", "내 일에 써 본다면", "가져갈 점", "조심할 점", "원문")
+CORNER_NAMES = ("오늘의 한 줄", "업무 자동화 사례", "깃허브·스킬 픽", "10분 따라 하기", "1분 용어")
+MORE = "자세히 읽기 →"
+IMG = "https://cdn.example.com/photo.jpg"
 
 
 def all_items(d):
@@ -57,10 +60,10 @@ def test_email_subject_format():
 
 def test_email_header_and_corner_titles():
     _, html = render_email(OK, SITE)
-    assert "AI 조간 · 10/28(수) · 읽는 시간 " in html
-    for name in ("① 오늘의 한 줄", "② 업무 자동화 사례", "③ 깃허브·스킬 픽", "④ 따라 해보기", "⑤ 1분 용어"):
+    assert "2026년 10월 28일 수요일 · " in html and "분 읽기" in html
+    for name in CORNER_NAMES:
         assert name in html
-    assert "#1a4fd6" in html
+    assert "#a8432a" in html
     assert 'style="' in html
 
 
@@ -68,14 +71,14 @@ def test_every_item_links_to_its_detail_page():
     _, html = render_email(OK, SITE)
     for item in all_items(OK):
         url = item_url(SITE["base_url"], TODAY, item["id"])
-        assert html.count(f'href="{url}"') >= 2, item["id"]  # 제목 + 「자세히 →」
-    assert html.count("자세히 →") == len(all_items(OK))
+        assert html.count(f'href="{url}"') >= 2, item["id"]  # 제목 + 「자세히 읽기 →」
+    assert html.count(MORE) == len(all_items(OK))
 
 
 def test_empty_corner_shows_note():
     _, html = render_email(EMPTY_GH, SITE)
     assert EMPTY_NOTE in html
-    assert "③ 깃허브·스킬 픽" in html
+    assert "깃허브·스킬 픽" in html
 
 
 def test_escapes_html_in_titles():
@@ -113,7 +116,9 @@ def test_detail_page_has_six_sections_and_source_link(tmp_path):
         assert f">{heading}<" in page, heading
     for src in item["sources"]:
         assert f'href="{src["url"]}"' in page
-    assert "AI 조간 10/28(수) › ② 업무 자동화 사례" in re.sub(r"<[^>]+>", "", page)
+    text = re.sub(r"<[^>]+>", "", page)
+    assert "업무 자동화 사례" in text and "2026년 10월 28일 수요일" in text
+    assert 'href="index.html"' in page
     assert item["detail"]["what"] in page
 
 
@@ -124,7 +129,7 @@ def test_empty_detail_field_omits_its_heading(tmp_path):
     docs = tmp_path / "docs"
     render_site(d, SITE, docs, tmp_path / "issues")
     page = (docs / "2026-10-28" / f"{item['id']}.html").read_text(encoding="utf-8")
-    assert ">주의<" not in page
+    assert ">조심할 점<" not in page
     assert ">원문<" in page
 
 
@@ -227,11 +232,11 @@ def test_email_plain_text_keeps_titles_and_detail_urls():
     _, html = render_email(OK, SITE)
     text = html_to_text(html)
     assert "<" not in text
-    assert "① 오늘의 한 줄" in text
+    assert "오늘의 한 줄" in text
     item = OK["corners"]["github"]["items"][0]
     assert item["title"] in text
     assert f"({item_url(SITE['base_url'], TODAY, item['id'])})" in text
-    assert "읽는 시간" in text
+    assert "분 읽기" in text
 
 
 def test_text_extractor_state_does_not_shadow_htmlparser():
@@ -268,3 +273,64 @@ def test_html_to_text_survives_parser_with_pending_list(monkeypatch):
     monkeypatch.setattr(HTMLParser, "reset", reset)
     monkeypatch.setattr(HTMLParser, "close", close)
     assert html_to_text('<p>가 <a href="https://example.com">나</a></p>') == "가 나 (https://example.com)"
+
+
+# ---------- 사진 ----------
+
+def test_email_without_images_has_no_img_tag():
+    _, html = render_email(OK, SITE)
+    assert "<img" not in html
+
+
+def test_email_shows_lead_and_side_images(tmp_path):
+    lead = OK["corners"]["one_line"]["items"][0]["id"]
+    side = OK["corners"]["automation"]["items"][0]["id"]
+    _, html = render_email(OK, SITE, {lead: IMG, side: IMG + "?b"})
+    assert f'src="{IMG}"' in html
+    assert f'src="{IMG}?b"' in html
+    assert html.count("<img") == 2
+
+
+def test_unsafe_image_urls_are_dropped(tmp_path):
+    lead = OK["corners"]["one_line"]["items"][0]["id"]
+    for bad in ("http://cdn.example.com/a.jpg", "javascript:alert(1)", 'https://e.com/a.jpg" onerror="x',
+                " https://e.com/a.jpg", 42, None):
+        _, html = render_email(OK, SITE, {lead: bad})
+        assert "<img" not in html, bad
+        assert "onerror" not in html
+
+
+def test_detail_page_has_hero_image_and_og_image(tmp_path):
+    item = OK["corners"]["automation"]["items"][0]
+    docs = tmp_path / "docs"
+    render_site(OK, SITE, docs, tmp_path / "issues", {item["id"]: IMG})
+    page = (docs / "2026-10-28" / f"{item['id']}.html").read_text(encoding="utf-8")
+    assert f'<img src="{IMG}"' in page
+    assert f'<meta property="og:image" content="{IMG}">' in page
+    other = OK["corners"]["one_line"]["items"][0]
+    page = (docs / "2026-10-28" / f"{other['id']}.html").read_text(encoding="utf-8")
+    assert "<img" not in page and "og:image" not in page
+
+
+def test_detail_pages_link_previous_and_next_items(tmp_path):
+    docs = tmp_path / "docs"
+    render_site(OK, SITE, docs, tmp_path / "issues")
+    items = all_items(OK)
+    first = (docs / "2026-10-28" / f"{items[0]['id']}.html").read_text(encoding="utf-8")
+    assert f'href="{items[1]["id"]}.html"' in first and "← 앞 기사" not in first
+    last = (docs / "2026-10-28" / f"{items[-1]['id']}.html").read_text(encoding="utf-8")
+    assert f'href="{items[-2]["id"]}.html"' in last and "다음 기사 →" not in last
+
+
+def test_index_shows_each_day_lead_image_from_images_json(tmp_path):
+    issues = tmp_path / "issues"
+    write_issue(issues, TODAY - timedelta(days=1), "어제")
+    lead = OK["corners"]["one_line"]["items"][0]["id"]
+    (issues / "2026-10-27" / "images.json").write_text(json.dumps({lead: IMG + "?y"}), encoding="utf-8")
+    write_issue(issues, TODAY - timedelta(days=2), "그제")
+    (issues / "2026-10-26" / "images.json").write_text("{깨짐", encoding="utf-8")
+    docs = tmp_path / "docs"
+    render_site(OK, SITE, docs, issues, {lead: IMG})
+    html = (docs / "index.html").read_text(encoding="utf-8")
+    assert f'src="{IMG}"' in html and f'src="{IMG}?y"' in html
+    assert html.count("<img") == 2
