@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>재귀적 자가 개선(RSI) — AI 조간 10/29(목)</title>
+<meta name="description" content="AI가 스스로 연구해 더 나은 후속 모델을 만들고, 그 모델이 다시 다음 모델을 만드는 반복을 가리킨다.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="재귀적 자가 개선(RSI)">
+<meta property="og:description" content="AI가 스스로 연구해 더 나은 후속 모델을 만들고, 그 모델이 다시 다음 모델을 만드는 반복을 가리킨다.">
+<meta property="og:url" content="https://serenwoon.github.io/ai-jogan/2026-10-29/recursive-self-improvement.html">
+<meta property="og:image" content="https://cdn.aitimes.com/news/photo/202610/216767_220918_2716.jpg">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8432a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%EC%A1%B0%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f2efe8; --paper: #fffdf8; --ink: #1f1d1a; --text: #3f3b35; --muted: #8b8478;
+    --rule: #e7e1d6; --accent: #a8432a; --tint: #f5efe3;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo, Batang, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161513; --paper: #1d1c19; --ink: #f1ece3; --text: #d6d0c5; --muted: #958e82;
+            --rule: #34312c; --accent: #e07a5c; --tint: #27241f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.8; -webkit-text-size-adjust: 100%; }
+  a { color: inherit; }
+  .page { max-width: 680px; margin: 0 auto; background: var(--paper); min-height: 100vh; padding: 0 0 48px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 24px 14px; border-bottom: 3px double var(--ink); }
+  .brand { font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -0.5px; }
+  .date { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .date:hover, .brand:hover { color: var(--accent); }
+  article { padding: 0 24px; }
+  .kicker { margin: 28px 0 0; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
+  h1 { font-family: var(--serif); font-size: clamp(24px, 6vw, 32px); line-height: 1.35; font-weight: 700; color: var(--ink); letter-spacing: -0.8px; margin: 10px 0 0; text-wrap: balance; word-break: keep-all; }
+  .tags { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; line-height: 1.7; color: var(--muted); background: var(--bg); padding: 0 8px; }
+  .lead { font-size: 18px; line-height: 1.7; color: var(--ink); margin: 18px 0 0; word-break: keep-all; }
+  figure { margin: 24px -24px 0; }
+  figure img { display: block; width: 100%; height: auto; background: var(--tint); }
+  .body { margin: 26px 0 0; }
+  p { margin: 0; white-space: pre-line; word-break: keep-all; }
+  h2 { font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 34px 0 8px; letter-spacing: -0.3px; }
+  .work { margin: 34px 0 0; background: var(--tint); padding: 18px 20px; }
+  .work h2, .note h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson { margin: 34px 0 0; border-left: 3px solid var(--accent); padding: 2px 0 2px 18px; }
+  .lesson h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson p { font-family: var(--serif); font-size: 18px; line-height: 1.7; color: var(--ink); }
+  .note { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .note h2 { color: var(--muted); }
+  .note p { font-size: 14px; color: var(--muted); }
+  .sources { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .sources h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted); margin: 0 0 6px; }
+  .sources ul { margin: 0; padding: 0; list-style: none; }
+  .sources li { padding: 6px 0; }
+  .sources a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+  .sources a:hover { text-decoration-color: var(--accent); }
+  .host { display: block; font-size: 12px; color: var(--muted); }
+  nav.more { margin: 40px 24px 0; border-top: 3px double var(--ink); padding: 14px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  nav.more a { text-decoration: none; display: block; }
+  nav.more small { display: block; font-size: 12px; color: var(--muted); }
+  nav.more span { font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1.5; }
+  nav.more a:hover span { color: var(--accent); }
+  nav.more .next { text-align: right; grid-column: 2; }
+  .foot { margin: 28px 24px 0; font-size: 13px; color: var(--muted); }
+  .foot a { color: var(--muted); }
+  @media (min-width: 700px) { .page { margin-top: 24px; min-height: 0; } figure { margin: 24px 0 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="top">
+<a class="brand" href="index.html">AI 조간</a>
+<a class="date" href="index.html">2026년 10월 29일 목요일</a>
+</header>
+<article>
+<div class="kicker">1분 용어</div>
+<h1>재귀적 자가 개선(RSI)</h1>
+<div class="tags"><span class="tag">AI 연구</span></div><p class="lead">AI가 스스로 연구해 더 나은 후속 모델을 만들고, 그 모델이 다시 다음 모델을 만드는 반복을 가리킨다.</p>
+<figure><img src="https://cdn.aitimes.com/news/photo/202610/216767_220918_2716.jpg" alt="재귀적 자가 개선(RSI)" loading="lazy" referrerpolicy="no-referrer"></figure>
+<div class="body">
+<p>지금도 AI는 코딩과 실험으로 모델 개발을 거든다. 완전한 RSI는 연구원이 맡아 온 핵심 업무까지 AI가 혼자 처리하는 단계를 말한다. 발스 AI의 CEO는 팟캐스트에서 앤트로픽이 2027년 7~8월쯤 여기 닿을 것으로 추정한다고 말했다.</p>
+<h2>왜 지금</h2>
+<p>발스 AI가 15일 AI의 모델 개발 능력을 재는 RSI 지수를 내놓았고, 27일 CEO가 같은 전망을 되풀이했다. 오늘 후보 중 OXR 저장소도 훈련 과정에 이 방식을 썼다고 소개한다.</p>
+</div>
+<section class="work"><h2>내 일에 써 본다면</h2><p>사무 현장에서는 AI 도구가 몇 달 사이 눈에 띄게 달라질 수 있다는 신호로 읽으면 된다. 분기마다 쓰는 AI 도구의 기능과 약관을 점검하는 일정을 캘린더에 넣어 둔다.</p></section>
+<section class="lesson"><h2>가져갈 점</h2><p>전망은 지난 1년의 점수 추이를 이어 붙인 추정이다. 숫자보다 누가 검증하느냐를 눈여겨본다.</p></section>
+<section class="note"><h2>조심할 점</h2><p>도달 시점은 입증된 것이 아니다. 발스 AI도 칩과 에너지, 현실 검증의 제약이 있어 곧바로 폭발적 발전이 되지는 않는다고 봤다.</p></section>
+<section class="sources"><h2>원문</h2>
+<ul>
+<li><a href="https://www.aitimes.com/news/articleView.html?idxno=216767">발스 AI “앤트로픽, 내년 여름 RSI에 도달”</a><span class="host">aitimes.com</span></li>
+</ul>
+</section>
+</article>
+<nav class="more">
+<a href="ask-unasked-deadline.html"><small>← 앞 기사</small><span>AI 답을 받으면 묻지 않은 마감이 있는지 한 번 더 묻는다</span></a></nav>
+<div class="foot"><a href="index.html">10/29(목) 호 전체</a> · <a href="../index.html">지난 호 모두 보기</a></div>
+</div>
+</body>
+</html>

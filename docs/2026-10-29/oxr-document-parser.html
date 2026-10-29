@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoMark, PDF를 AI가 읽기 좋은 데이터로 바꾸는 모델 OXR을 공개했다 — AI 조간 10/29(목)</title>
+<meta name="description" content="OXR은 PDF와 문서 이미지를 마크다운이나 JSON으로 바꾸는 오픈소스 모델이다. 매개변수는 13억 개다.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SoMark, PDF를 AI가 읽기 좋은 데이터로 바꾸는 모델 OXR을 공개했다">
+<meta property="og:description" content="OXR은 PDF와 문서 이미지를 마크다운이나 JSON으로 바꾸는 오픈소스 모델이다. 매개변수는 13억 개다.">
+<meta property="og:url" content="https://serenwoon.github.io/ai-jogan/2026-10-29/oxr-document-parser.html">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8432a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%EC%A1%B0%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f2efe8; --paper: #fffdf8; --ink: #1f1d1a; --text: #3f3b35; --muted: #8b8478;
+    --rule: #e7e1d6; --accent: #a8432a; --tint: #f5efe3;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo, Batang, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161513; --paper: #1d1c19; --ink: #f1ece3; --text: #d6d0c5; --muted: #958e82;
+            --rule: #34312c; --accent: #e07a5c; --tint: #27241f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.8; -webkit-text-size-adjust: 100%; }
+  a { color: inherit; }
+  .page { max-width: 680px; margin: 0 auto; background: var(--paper); min-height: 100vh; padding: 0 0 48px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 24px 14px; border-bottom: 3px double var(--ink); }
+  .brand { font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -0.5px; }
+  .date { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .date:hover, .brand:hover { color: var(--accent); }
+  article { padding: 0 24px; }
+  .kicker { margin: 28px 0 0; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
+  h1 { font-family: var(--serif); font-size: clamp(24px, 6vw, 32px); line-height: 1.35; font-weight: 700; color: var(--ink); letter-spacing: -0.8px; margin: 10px 0 0; text-wrap: balance; word-break: keep-all; }
+  .tags { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; line-height: 1.7; color: var(--muted); background: var(--bg); padding: 0 8px; }
+  .lead { font-size: 18px; line-height: 1.7; color: var(--ink); margin: 18px 0 0; word-break: keep-all; }
+  figure { margin: 24px -24px 0; }
+  figure img { display: block; width: 100%; height: auto; background: var(--tint); }
+  .body { margin: 26px 0 0; }
+  p { margin: 0; white-space: pre-line; word-break: keep-all; }
+  h2 { font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 34px 0 8px; letter-spacing: -0.3px; }
+  .work { margin: 34px 0 0; background: var(--tint); padding: 18px 20px; }
+  .work h2, .note h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson { margin: 34px 0 0; border-left: 3px solid var(--accent); padding: 2px 0 2px 18px; }
+  .lesson h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson p { font-family: var(--serif); font-size: 18px; line-height: 1.7; color: var(--ink); }
+  .note { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .note h2 { color: var(--muted); }
+  .note p { font-size: 14px; color: var(--muted); }
+  .sources { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .sources h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted); margin: 0 0 6px; }
+  .sources ul { margin: 0; padding: 0; list-style: none; }
+  .sources li { padding: 6px 0; }
+  .sources a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+  .sources a:hover { text-decoration-color: var(--accent); }
+  .host { display: block; font-size: 12px; color: var(--muted); }
+  nav.more { margin: 40px 24px 0; border-top: 3px double var(--ink); padding: 14px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  nav.more a { text-decoration: none; display: block; }
+  nav.more small { display: block; font-size: 12px; color: var(--muted); }
+  nav.more span { font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1.5; }
+  nav.more a:hover span { color: var(--accent); }
+  nav.more .next { text-align: right; grid-column: 2; }
+  .foot { margin: 28px 24px 0; font-size: 13px; color: var(--muted); }
+  .foot a { color: var(--muted); }
+  @media (min-width: 700px) { .page { margin-top: 24px; min-height: 0; } figure { margin: 24px 0 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="top">
+<a class="brand" href="index.html">AI 조간</a>
+<a class="date" href="index.html">2026년 10월 29일 목요일</a>
+</header>
+<article>
+<div class="kicker">깃허브·스킬 픽</div>
+<h1>SoMark, PDF를 AI가 읽기 좋은 데이터로 바꾸는 모델 OXR을 공개했다</h1>
+<div class="tags"><span class="tag">문서 파싱 모델</span><span class="tag">라이선스 미확인</span></div><p class="lead">OXR은 PDF와 문서 이미지를 마크다운이나 JSON으로 바꾸는 오픈소스 모델이다. 매개변수는 13억 개다.</p>
+<div class="body">
+<p>중국 SoMark 팀이 문서 인식 모델 OXR을 오픈소스로 올렸다. 표, 수식, 도장, 코드 블록 등 13가지 요소를 알아보고 위치 좌표까지 붙여 준다. 팀 설명으로는 세 가지 공개 평가에서 1위다.</p>
+<h2>왜 지금</h2>
+<p>AI 에이전트에게 문서를 읽히려면 먼저 PDF를 글자와 표로 풀어야 한다. 그 앞단 도구를 두고 경쟁이 붙은 흐름에서 나온 모델이다.</p>
+</div>
+<section class="work"><h2>내 일에 써 본다면</h2><p>스캔한 거래명세서나 표가 많은 협력사 보고서를 엑셀에 옮겨 적을 때 쓸 자리다. 팀이 무료 시험용 API를 열어 두어 내 문서 한 장으로 먼저 결과를 볼 수 있다.</p></section>
+<section class="lesson"><h2>가져갈 점</h2><p>문서 자동화는 요약 모델보다 읽어 들이는 단계에서 갈린다. 표가 틀리게 읽히면 뒤의 요약도 틀린다. 먼저 원본 표와 결과를 대조한다.</p></section>
+<section class="note"><h2>조심할 점</h2><p>1위 주장은 개발팀 설명이며 직접 확인하지 못했다. 무료 API는 안정성을 보장하지 않고, 팀이 운영을 끝내면 닫힐 수 있다. 기밀 문서는 올리지 않는다. 직접 돌리려면 GPU가 필요하다. 라이선스는 확인하지 못했다.</p></section>
+<section class="sources"><h2>원문</h2>
+<ul>
+<li><a href="https://github.com/SoMarkAI/OXR">SoMarkAI/OXR</a><span class="host">github.com</span></li>
+</ul>
+</section>
+</article>
+<nav class="more">
+<a href="gemini-4-carbon-top.html"><small>← 앞 기사</small><span>구글, 제미나이 4 카본으로 AI 종합 평가 1위를 11개월 만에 되찾았다</span></a><a class="next" href="ask-unasked-deadline.html"><small>다음 기사 →</small><span>AI 답을 받으면 묻지 않은 마감이 있는지 한 번 더 묻는다</span></a></nav>
+<div class="foot"><a href="index.html">10/29(목) 호 전체</a> · <a href="../index.html">지난 호 모두 보기</a></div>
+</div>
+</body>
+</html>
