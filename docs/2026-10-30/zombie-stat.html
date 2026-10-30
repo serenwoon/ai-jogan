@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>좀비 통계(zombie stat) — AI 조간 10/30(금)</title>
+<meta name="description" content="출처를 따라가도 근거 연구가 나오지 않는데 계속 인용되는 숫자다. 트래커 조사에서 AI가 인용한 통계 1,285건 중 연구까지 닿은 것은 40%였다.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="좀비 통계(zombie stat)">
+<meta property="og:description" content="출처를 따라가도 근거 연구가 나오지 않는데 계속 인용되는 숫자다. 트래커 조사에서 AI가 인용한 통계 1,285건 중 연구까지 닿은 것은 40%였다.">
+<meta property="og:url" content="https://serenwoon.github.io/ai-jogan/2026-10-30/zombie-stat.html">
+<meta property="og:image" content="https://trakkr.ai/images/research/og/zombie-stats.png">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8432a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%EC%A1%B0%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f2efe8; --paper: #fffdf8; --ink: #1f1d1a; --text: #3f3b35; --muted: #8b8478;
+    --rule: #e7e1d6; --accent: #a8432a; --tint: #f5efe3;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo, Batang, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161513; --paper: #1d1c19; --ink: #f1ece3; --text: #d6d0c5; --muted: #958e82;
+            --rule: #34312c; --accent: #e07a5c; --tint: #27241f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.8; -webkit-text-size-adjust: 100%; }
+  a { color: inherit; }
+  .page { max-width: 680px; margin: 0 auto; background: var(--paper); min-height: 100vh; padding: 0 0 48px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 24px 14px; border-bottom: 3px double var(--ink); }
+  .brand { font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -0.5px; }
+  .date { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .date:hover, .brand:hover { color: var(--accent); }
+  article { padding: 0 24px; }
+  .kicker { margin: 28px 0 0; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
+  h1 { font-family: var(--serif); font-size: clamp(24px, 6vw, 32px); line-height: 1.35; font-weight: 700; color: var(--ink); letter-spacing: -0.8px; margin: 10px 0 0; text-wrap: balance; word-break: keep-all; }
+  .tags { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; line-height: 1.7; color: var(--muted); background: var(--bg); padding: 0 8px; }
+  .lead { font-size: 18px; line-height: 1.7; color: var(--ink); margin: 18px 0 0; word-break: keep-all; }
+  figure { margin: 24px -24px 0; }
+  figure img { display: block; width: 100%; height: auto; background: var(--tint); }
+  .body { margin: 26px 0 0; }
+  p { margin: 0; white-space: pre-line; word-break: keep-all; }
+  h2 { font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 34px 0 8px; letter-spacing: -0.3px; }
+  .work { margin: 34px 0 0; background: var(--tint); padding: 18px 20px; }
+  .work h2, .note h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson { margin: 34px 0 0; border-left: 3px solid var(--accent); padding: 2px 0 2px 18px; }
+  .lesson h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson p { font-family: var(--serif); font-size: 18px; line-height: 1.7; color: var(--ink); }
+  .note { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .note h2 { color: var(--muted); }
+  .note p { font-size: 14px; color: var(--muted); }
+  .sources { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .sources h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted); margin: 0 0 6px; }
+  .sources ul { margin: 0; padding: 0; list-style: none; }
+  .sources li { padding: 6px 0; }
+  .sources a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+  .sources a:hover { text-decoration-color: var(--accent); }
+  .host { display: block; font-size: 12px; color: var(--muted); }
+  nav.more { margin: 40px 24px 0; border-top: 3px double var(--ink); padding: 14px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  nav.more a { text-decoration: none; display: block; }
+  nav.more small { display: block; font-size: 12px; color: var(--muted); }
+  nav.more span { font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1.5; }
+  nav.more a:hover span { color: var(--accent); }
+  nav.more .next { text-align: right; grid-column: 2; }
+  .foot { margin: 28px 24px 0; font-size: 13px; color: var(--muted); }
+  .foot a { color: var(--muted); }
+  @media (min-width: 700px) { .page { margin-top: 24px; min-height: 0; } figure { margin: 24px 0 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="top">
+<a class="brand" href="index.html">AI 조간</a>
+<a class="date" href="index.html">2026년 10월 30일 금요일</a>
+</header>
+<article>
+<div class="kicker">1분 용어</div>
+<h1>좀비 통계(zombie stat)</h1>
+<div class="tags"><span class="tag">출처 검증</span></div><p class="lead">출처를 따라가도 근거 연구가 나오지 않는데 계속 인용되는 숫자다. 트래커 조사에서 AI가 인용한 통계 1,285건 중 연구까지 닿은 것은 40%였다.</p>
+<figure><img src="https://trakkr.ai/images/research/og/zombie-stats.png" alt="좀비 통계(zombie stat)" loading="lazy" referrerpolicy="no-referrer"></figure>
+<div class="body">
+<p>좀비 통계는 근거 연구 없이 블로그와 요약 글을 건너며 반복되는 숫자를 가리킨다. AI 검색 분석 업체 트래커가 챗봇 다섯 곳이 인용한 통계 1,285건을 최대 다섯 페이지까지 거슬러 추적했다. 연구에 닿은 것은 40%였고, 11%는 아무 데도 닿지 않았다.</p>
+<h2>왜 지금</h2>
+<p>AI 답변이 숫자를 자신 있게 내놓는 일이 보고서 작성에 흔해졌다. 이 조사는 그 숫자를 클릭해서 끝까지 따라간 첫 대규모 시도로 소개됐다.</p>
+</div>
+<section class="work"><h2>내 일에 써 본다면</h2><p>보고서에 AI가 준 시장 규모나 비율을 넣기 전에 인용 링크를 눌러 본다. 링크가 회사 블로그나 통계 모음 글이면 한 단계 더 거슬러 올라가 원 조사 이름과 연도를 확인한다.</p></section>
+<section class="lesson"><h2>가져갈 점</h2><p>인용 링크는 AI가 숫자를 찾은 곳이지 숫자가 나온 곳이 아니다. 조사에서 인용 페이지가 원 연구인 경우는 21%였다.</p></section>
+<section class="note"><h2>조심할 점</h2><p>판정에 AI 모델이 쓰였고 일부를 사람이 다시 확인했다고 한다. 조사 주체가 AI 노출 분석 업체라는 점도 감안한다.</p></section>
+<section class="sources"><h2>원문</h2>
+<ul>
+<li><a href="https://trakkr.ai/trakkr-research/zombie-stats">Zombie stats: Where the numbers AI quotes come from</a><span class="host">trakkr.ai</span></li>
+</ul>
+</section>
+</article>
+<nav class="more">
+<a href="read-draft-aloud.html"><small>← 앞 기사</small><span>AI에게 초안을 맡기기 전에 직접 쓰고 소리 내어 읽어 보자</span></a></nav>
+<div class="foot"><a href="index.html">10/30(금) 호 전체</a> · <a href="../index.html">지난 호 모두 보기</a></div>
+</div>
+</body>
+</html>
