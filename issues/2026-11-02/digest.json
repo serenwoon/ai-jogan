@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-02",
+  "headline": "비기술 대기업 AI 성과 없다는 아폴로 진단",
+  "corners": {
+    "one_line": {
+      "items": [
+        {
+          "id": "apollo-zero-payoff",
+          "title": "아폴로 수석 이코노미스트, 비기술 대기업의 AI 재무 성과를 0이라 진단했다",
+          "summary": "아폴로의 토르스텐 슬로크가 S&P 500에서 빅테크 7곳을 뺀 493곳의 이익률과 직원당 매출이 평평하다고 짚었다.",
+          "tags": ["AI 투자", "생산성"],
+          "detail": {
+            "what": "사모펀드 아폴로글로벌매니지먼트의 수석 이코노미스트 슬로크가 최근 메모를 냈다. 알파벳·아마존·애플·메타·마이크로소프트·엔비디아·테슬라를 뺀 S&P 493을 보니 이익률과 직원당 매출이 평평했고, AI가 생산성을 높인다는 증거도 없다는 내용이다. 그는 기술 업종 밖의 미국 기업에는 AI의 재무 성과가 없다고 썼다.",
+            "why_now": "AI 투자 규모와 기대가 커지는 사이, 현장 수익으로 이어졌는지를 묻는 글이 늘고 있다. 이 메모는 그 질문을 숫자로 던졌다.",
+            "use_at_work": "월요일 주간보고에 AI 도입 효과를 넣어야 한다면, 쓴 시간이 아니라 줄어든 시간과 줄어든 재작업을 나란히 적어 보는 편이 낫다. 슬로크의 지적은 보고서 한 장에서도 같은 질문으로 돌아온다. 이 도구가 매출이나 비용 가운데 무엇을 바꿨는가.",
+            "lesson": "AI를 쓴다는 사실과 성과가 난다는 사실은 다르다. 도입 전에 비교할 기준 수치부터 적어 두자.",
+            "caution": "한 이코노미스트의 의견이며 원문 요약만 확인했다. 메모 원문과 산정 방식은 확인하지 못했다. 이익률 같은 지표 하나로 도입 효과를 전부 판단하기는 어렵다."
+          },
+          "sources": [
+            {
+              "title": "AI delivers 'zero financial payoff' to most companies, Apollo economist says",
+              "url": "https://techcrunch.com/2026/10/25/ai-delivers-zero-financial-payoff-to-most-companies-according-to-apollo-economist"
+            }
+          ]
+        }
+      ],
+      "empty_note": null
+    },
+    "automation": {
+      "items": [],
+      "empty_note": "오늘은 새 사례 없음"
+    },
+    "github": {
+      "items": [
+        {
+          "id": "floorplan-code-map",
+          "title": "AI가 만든 앱의 구조를 쉬운 말 지도로 그려 주는 도구가 나왔다",
+          "summary": "floorplan은 클로드 코드나 코덱스가 코드를 읽고 앱 구조를 대화형 지도로 그린다. 별은 1,808개다.",
+          "tags": ["Claude Code", "코드 지도"],
+          "detail": {
+            "what": "floorplan은 AI 코딩 도구가 코드를 읽어 앱의 각 부분과 파일, 웹 요청에 쉬운 이름을 붙이고 연결선을 그려 주는 저장소다. 지도를 확대해 파일과 요청 주소까지 내려갈 수 있고, 지도에 직접 질문도 한다. 저장소 설명으로는 모든 것이 사용자 컴퓨터에서 돌고 git에 아무것도 남기지 않는다.",
+            "why_now": "AI에게 맡겨 만든 앱이 늘면서 만든 사람도 구조를 모르는 일이 생기고 있다. 이 도구는 그 빈틈을 겨냥했다.",
+            "use_at_work": "개발자가 아니어도 외주로 받은 사내 도구가 어떤 외부 서비스에 연결되는지 궁금할 때가 있다. 지도를 열어 결제나 메일 발송이 어디로 나가는지 짚어 두면 담당자와 이야기하기가 쉬워진다.",
+            "lesson": "AI가 만든 결과물은 무엇을 바꿨는지 사람이 한눈에 볼 장치와 함께 써야 한다. 이 저장소는 최근 바뀐 부분을 초록으로 표시하는 방식으로 그 답을 낸다.",
+            "caution": "라이선스는 확인하지 못했다. 보안 점검 기능은 저장소 설명에서도 전수 감사가 아닌 확인용이라고 선을 긋는다. 쓰기 전에 설명서를 읽어야 한다."
+          },
+          "sources": [
+            {
+              "title": "haydenschmitty/floorplan",
+              "url": "https://github.com/haydenschmitty/floorplan"
+            }
+          ]
+        }
+      ],
+      "empty_note": null
+    },
+    "try_this": {
+      "items": [
+        {
+          "id": "split-task-before-agent",
+          "title": "AI 에이전트를 붙이기 전에 일을 세 칸으로 나눠 보자",
+          "summary": "한빛미디어 신간은 규칙, 학습 모델, LLM 중 무엇이 맡을 일인지 먼저 가르라고 한다. 10분이면 한 업무로 해볼 수 있다.",
+          "tags": ["업무 설계"],
+          "detail": {
+            "what": "이선협 저자의 『문제 해결을 위한 AI 에이전트 설계』는 입력과 출력이 정해져 있는지, 답이 하나인지를 먼저 따진다. 그 뒤에 규칙 기반 소프트웨어와 학습 모델, LLM이 맡을 일을 나눈다. 책은 만들지 말아야 할 곳을 먼저 알려 준다는 서점 담당자 평을 받았다.",
+            "why_now": "회사마다 에이전트 도입 이야기가 나오는 시기에 설계 책이 소개됐다. 도구를 고르기보다 문제를 나누는 것이 먼저라는 주장이다.",
+            "use_at_work": "매주 반복하는 업무 하나를 고른다. 월요일 주간보고를 예로 들면 입력은 팀원 메모, 출력은 한 장짜리 요약이다. 숫자 합계는 엑셀 수식이 맡고, 문장 다듬기만 AI에 맡기는 식으로 세 칸에 적어 보자.",
+            "lesson": "AI에게 맡길 일은 판단이 필요한 부분만이다. 계산과 양식 맞추기는 규칙으로 처리하는 편이 더 싸고 틀리지 않는다.",
+            "caution": "신간 소개 기사라 책 내용은 확인하지 못했다. 서점 측 추천 글이므로 평가는 홍보로 읽어야 한다."
+          },
+          "sources": [
+            {
+              "title": "[AI리더의 서가] 문제 해결을 위한 AI 에이전트 설계",
+              "url": "https://www.aitimes.com/news/articleView.html?idxno=216785"
+            }
+          ]
+        }
+      ],
+      "empty_note": null
+    },
+    "term": {
+      "items": [
+        {
+          "id": "agent-swarm",
+          "title": "에이전트 스웜",
+          "summary": "AI 에이전트 여러 개를 한 팀으로 풀어 일을 나눠 맡기는 방식이다. 50개 팀이 문명 건설에 실패한 실험이 나왔다.",
+          "tags": ["멀티 에이전트"],
+          "detail": {
+            "what": "에이전트는 스스로 도구를 쓰며 일을 처리하는 AI 프로그램이다. 스웜은 그런 에이전트 수십 개를 동시에 돌려 협력하게 하는 구성을 말한다. 연구진은 마인크래프트에서 에이전트 50개에게 세 시간 안에 문명을 세우라고 시켰지만 번성하지 못했다.",
+            "why_now": "에이전트 무리가 수학 문제를 대량으로 푼 사례와 위험했던 사고가 함께 화제가 됐다. 연구진은 게임 실험으로 그 원인을 따져 보려 했다.",
+            "use_at_work": "여러 AI에게 보고서 조사, 초안, 검수를 나눠 시키는 도구를 쓸 때 이 사례가 참고가 된다. 에이전트 넷이 비료 담당자 하나 정하는 데 11분을 쓴 장면처럼, 역할이 많아지면 조율에 시간이 먼저 샌다.",
+            "lesson": "에이전트를 늘린다고 일이 빨라지지 않는다. 역할을 적게 두고 결재선을 짧게 하는 쪽이 사람 조직과 같은 원리다.",
+            "caution": "게임 속 실험이며 실제 업무 결과와 같다고 볼 수 없다. 시험한 모델도 일부로 한정됐다."
+          },
+          "sources": [
+            {
+              "title": "AI agent swarms in Minecraft fail to build civilization, drown in bureaucracy",
+              "url": "https://www.tomshardware.com/tech-industry/artificial-intelligence/ai-agent-swarms-unleashed-in-minecraft-to-build-a-thriving-civilization-50-agent-teams-fail-after-falling-into-paralyzing-bureaucracy"
+            }
+          ]
+        }
+      ],
+      "empty_note": null
+    }
+  }
+}
