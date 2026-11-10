@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>앤트로픽, 업무 자동화 점수를 끌어올린 페이블 5.2 공개 — AI 조간 11/10(화)</title>
+<meta name="description" content="앤트로픽이 Claude Fable 5.2를 냈다. 가격은 입력 100만 토큰에 8달러, 출력에 40달러다. 업무 흐름 평가 AutomationBench는 51.4%다.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="앤트로픽, 업무 자동화 점수를 끌어올린 페이블 5.2 공개">
+<meta property="og:description" content="앤트로픽이 Claude Fable 5.2를 냈다. 가격은 입력 100만 토큰에 8달러, 출력에 40달러다. 업무 흐름 평가 AutomationBench는 51.4%다.">
+<meta property="og:url" content="https://serenwoon.github.io/ai-jogan/2026-11-10/fable-5-2-release.html">
+<meta property="og:image" content="https://www-cdn.anthropic.com/images/4zrzovbb/website/b2dab182c77b4ccfd36423470106915b20f676ae-1200x630.jpg">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8432a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%EC%A1%B0%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f2efe8; --paper: #fffdf8; --ink: #1f1d1a; --text: #3f3b35; --muted: #8b8478;
+    --rule: #e7e1d6; --accent: #a8432a; --tint: #f5efe3;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo, Batang, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161513; --paper: #1d1c19; --ink: #f1ece3; --text: #d6d0c5; --muted: #958e82;
+            --rule: #34312c; --accent: #e07a5c; --tint: #27241f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.8; -webkit-text-size-adjust: 100%; }
+  a { color: inherit; }
+  .page { max-width: 680px; margin: 0 auto; background: var(--paper); min-height: 100vh; padding: 0 0 48px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 24px 14px; border-bottom: 3px double var(--ink); }
+  .brand { font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -0.5px; }
+  .date { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .date:hover, .brand:hover { color: var(--accent); }
+  article { padding: 0 24px; }
+  .kicker { margin: 28px 0 0; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
+  h1 { font-family: var(--serif); font-size: clamp(24px, 6vw, 32px); line-height: 1.35; font-weight: 700; color: var(--ink); letter-spacing: -0.8px; margin: 10px 0 0; text-wrap: balance; word-break: keep-all; }
+  .tags { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; line-height: 1.7; color: var(--muted); background: var(--bg); padding: 0 8px; }
+  .lead { font-size: 18px; line-height: 1.7; color: var(--ink); margin: 18px 0 0; word-break: keep-all; }
+  figure { margin: 24px -24px 0; }
+  figure img { display: block; width: 100%; height: auto; background: var(--tint); }
+  .body { margin: 26px 0 0; }
+  p { margin: 0; white-space: pre-line; word-break: keep-all; }
+  h2 { font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 34px 0 8px; letter-spacing: -0.3px; }
+  .work { margin: 34px 0 0; background: var(--tint); padding: 18px 20px; }
+  .work h2, .note h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson { margin: 34px 0 0; border-left: 3px solid var(--accent); padding: 2px 0 2px 18px; }
+  .lesson h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson p { font-family: var(--serif); font-size: 18px; line-height: 1.7; color: var(--ink); }
+  .note { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .note h2 { color: var(--muted); }
+  .note p { font-size: 14px; color: var(--muted); }
+  .sources { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .sources h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted); margin: 0 0 6px; }
+  .sources ul { margin: 0; padding: 0; list-style: none; }
+  .sources li { padding: 6px 0; }
+  .sources a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+  .sources a:hover { text-decoration-color: var(--accent); }
+  .host { display: block; font-size: 12px; color: var(--muted); }
+  nav.more { margin: 40px 24px 0; border-top: 3px double var(--ink); padding: 14px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  nav.more a { text-decoration: none; display: block; }
+  nav.more small { display: block; font-size: 12px; color: var(--muted); }
+  nav.more span { font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1.5; }
+  nav.more a:hover span { color: var(--accent); }
+  nav.more .next { text-align: right; grid-column: 2; }
+  .foot { margin: 28px 24px 0; font-size: 13px; color: var(--muted); }
+  .foot a { color: var(--muted); }
+  @media (min-width: 700px) { .page { margin-top: 24px; min-height: 0; } figure { margin: 24px 0 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="top">
+<a class="brand" href="index.html">AI 조간</a>
+<a class="date" href="index.html">2026년 11월 10일 화요일</a>
+</header>
+<article>
+<div class="kicker">오늘의 한 줄</div>
+<h1>앤트로픽, 업무 자동화 점수를 끌어올린 페이블 5.2 공개</h1>
+<div class="tags"><span class="tag">Claude</span><span class="tag">신모델</span></div><p class="lead">앤트로픽이 Claude Fable 5.2를 냈다. 가격은 입력 100만 토큰에 8달러, 출력에 40달러다. 업무 흐름 평가 AutomationBench는 51.4%다.</p>
+<figure><img src="https://www-cdn.anthropic.com/images/4zrzovbb/website/b2dab182c77b4ccfd36423470106915b20f676ae-1200x630.jpg" alt="앤트로픽, 업무 자동화 점수를 끌어올린 페이블 5.2 공개" loading="lazy" referrerpolicy="no-referrer"></figure>
+<div class="body">
+<p>앤트로픽이 Claude Fable 5.2와 Mythos 5.2를 공개했다. 두 모델은 뿌리가 같고, Fable은 보안·생물 분야 안전장치를 걸어 모든 이용자에게 열었다. 회사 설명으로는 이전 5.1보다 출력이 최대 30% 빠르고 값도 내렸다. 속도를 최대 2.5배 높이는 빠른 모드는 입력 16달러, 출력 80달러다.</p>
+<h2>왜 지금</h2>
+<p>AI 모델이 코딩을 넘어 사무 업무 평가에서도 점수를 겨루는 흐름 위에 있는 발표다. 같은 표에서 Fable 5.1의 AutomationBench는 31.4%였고, 5.2는 51.4%로 올랐다.</p>
+</div>
+<section class="work"><h2>내 일에 써 본다면</h2><p>매주 월요일 주간보고를 만들 때 초안은 값싼 모델에 맡기고, 숫자가 엇갈리는 대목만 상위 모델에 되묻는 식으로 나눠 쓸 자리가 있다. 앤트로픽도 일상 업무에는 Opus 5.5에서 시작하라고 권한다.</p></section>
+<section class="lesson"><h2>가져갈 점</h2><p>가장 센 모델이 곧 가장 알맞은 모델은 아니다. 일의 무게에 따라 모델을 갈아 끼우는 습관이 비용을 정한다.</p></section>
+<section class="note"><h2>조심할 점</h2><p>점수는 모두 앤트로픽이 낸 자료다. 외부 검증은 이 글에서 확인하지 못했다. 평가 환경과 노력 수준이 모델마다 달라 표를 그대로 비교하기도 어렵다.</p></section>
+<section class="sources"><h2>원문</h2>
+<ul>
+<li><a href="https://www.anthropic.com/claude-fable-and-mythos-5-2">Claude Fable 5.2 and Mythos 5.2</a><span class="host">anthropic.com</span></li>
+</ul>
+</section>
+</article>
+<nav class="more">
+<a class="next" href="dentcom-ai-records.html"><small>다음 기사 →</small><span>덴컴, 서부장애인치과병원 진료기록 작성을 AI에 맡겼다</span></a></nav>
+<div class="foot"><a href="index.html">11/10(화) 호 전체</a> · <a href="../index.html">지난 호 모두 보기</a></div>
+</div>
+</body>
+</html>
