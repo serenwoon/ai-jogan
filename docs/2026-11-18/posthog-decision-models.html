@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>포스트호그, 개인정보 검수에 작은 판정 모델을 앞세웠다 — AI 조간 11/18(수)</title>
+<meta name="description" content="세션 요약의 98.7%는 비싼 LLM 호출 없이 통과한다. 판정 모델이 예·아니오와 확률을 내놓고, 걸린 글만 제미나이가 고친다.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="포스트호그, 개인정보 검수에 작은 판정 모델을 앞세웠다">
+<meta property="og:description" content="세션 요약의 98.7%는 비싼 LLM 호출 없이 통과한다. 판정 모델이 예·아니오와 확률을 내놓고, 걸린 글만 제미나이가 고친다.">
+<meta property="og:url" content="https://serenwoon.github.io/ai-jogan/2026-11-18/posthog-decision-models.html">
+<meta property="og:image" content="https://substackcdn.com/image/fetch/$s_!wD8h!,w_1200,h_675,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff406379a-4ff2-4e21-aaac-69cda7d7b37e_1200x630.png">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8432a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%EC%A1%B0%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f2efe8; --paper: #fffdf8; --ink: #1f1d1a; --text: #3f3b35; --muted: #8b8478;
+    --rule: #e7e1d6; --accent: #a8432a; --tint: #f5efe3;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo, Batang, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161513; --paper: #1d1c19; --ink: #f1ece3; --text: #d6d0c5; --muted: #958e82;
+            --rule: #34312c; --accent: #e07a5c; --tint: #27241f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.8; -webkit-text-size-adjust: 100%; }
+  a { color: inherit; }
+  .page { max-width: 680px; margin: 0 auto; background: var(--paper); min-height: 100vh; padding: 0 0 48px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 24px 14px; border-bottom: 3px double var(--ink); }
+  .brand { font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -0.5px; }
+  .date { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .date:hover, .brand:hover { color: var(--accent); }
+  article { padding: 0 24px; }
+  .kicker { margin: 28px 0 0; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
+  h1 { font-family: var(--serif); font-size: clamp(24px, 6vw, 32px); line-height: 1.35; font-weight: 700; color: var(--ink); letter-spacing: -0.8px; margin: 10px 0 0; text-wrap: balance; word-break: keep-all; }
+  .tags { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; line-height: 1.7; color: var(--muted); background: var(--bg); padding: 0 8px; }
+  .lead { font-size: 18px; line-height: 1.7; color: var(--ink); margin: 18px 0 0; word-break: keep-all; }
+  figure { margin: 24px -24px 0; }
+  figure img { display: block; width: 100%; height: auto; background: var(--tint); }
+  .body { margin: 26px 0 0; }
+  p { margin: 0; white-space: pre-line; word-break: keep-all; }
+  h2 { font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 34px 0 8px; letter-spacing: -0.3px; }
+  .work { margin: 34px 0 0; background: var(--tint); padding: 18px 20px; }
+  .work h2, .note h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson { margin: 34px 0 0; border-left: 3px solid var(--accent); padding: 2px 0 2px 18px; }
+  .lesson h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson p { font-family: var(--serif); font-size: 18px; line-height: 1.7; color: var(--ink); }
+  .note { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .note h2 { color: var(--muted); }
+  .note p { font-size: 14px; color: var(--muted); }
+  .sources { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .sources h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted); margin: 0 0 6px; }
+  .sources ul { margin: 0; padding: 0; list-style: none; }
+  .sources li { padding: 6px 0; }
+  .sources a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+  .sources a:hover { text-decoration-color: var(--accent); }
+  .host { display: block; font-size: 12px; color: var(--muted); }
+  nav.more { margin: 40px 24px 0; border-top: 3px double var(--ink); padding: 14px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  nav.more a { text-decoration: none; display: block; }
+  nav.more small { display: block; font-size: 12px; color: var(--muted); }
+  nav.more span { font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1.5; }
+  nav.more a:hover span { color: var(--accent); }
+  nav.more .next { text-align: right; grid-column: 2; }
+  .foot { margin: 28px 24px 0; font-size: 13px; color: var(--muted); }
+  .foot a { color: var(--muted); }
+  @media (min-width: 700px) { .page { margin-top: 24px; min-height: 0; } figure { margin: 24px 0 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="top">
+<a class="brand" href="index.html">AI 조간</a>
+<a class="date" href="index.html">2026년 11월 18일 수요일</a>
+</header>
+<article>
+<div class="kicker">업무 자동화 사례</div>
+<h1>포스트호그, 개인정보 검수에 작은 판정 모델을 앞세웠다</h1>
+<div class="tags"><span class="tag">사례</span><span class="tag">비용 절감</span></div><p class="lead">세션 요약의 98.7%는 비싼 LLM 호출 없이 통과한다. 판정 모델이 예·아니오와 확률을 내놓고, 걸린 글만 제미나이가 고친다.</p>
+<figure><img src="https://substackcdn.com/image/fetch/$s_!wD8h!,w_1200,h_675,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff406379a-4ff2-4e21-aaac-69cda7d7b37e_1200x630.png" alt="포스트호그, 개인정보 검수에 작은 판정 모델을 앞세웠다" loading="lazy" referrerpolicy="no-referrer"></figure>
+<div class="body">
+<p>서비스 분석 업체 포스트호그는 사용자 화면 녹화를 요약하는 제품에서 요약문마다 판정 모델에 질문 두 개를 던진다. 실명이 있는지, 연락처나 신분 번호가 보이는지다. 둘 중 하나라도 점수가 0.4 이상이면 제미나이가 개인정보를 빼고 다시 쓰고, 한 번 더 검사한다.</p>
+<h2>왜 지금</h2>
+<p>모든 일을 거대 모델에 맡기던 흐름에서 쉬운 판단은 작은 모델에 넘기는 쪽으로 무게가 옮겨가고 있다. 회사는 이 방식을 여러 제품에 적용한 경험을 정리해 공개했다.</p>
+</div>
+<section class="work"><h2>내 일에 써 본다면</h2><p>고객 회신 메일을 보내기 전에 계약 금액이나 개인 연락처가 들어갔는지 먼저 걸러야 할 때가 있다. 의심되는 메일만 사람이 보거나 큰 모델에 넘기는 식으로 검수 줄을 짤 수 있다.</p></section>
+<section class="lesson"><h2>가져갈 점</h2><p>문턱 점수는 어느 쪽 실수가 더 비싼지로 정한다. 포스트호그는 개인정보를 놓치면 큰일이라 0.4로 낮췄고, 슬랙 봇은 엉뚱한 답이 귀찮아서 0.85로 높였다.</p></section>
+<section class="note"><h2>조심할 점</h2><p>98.7%라는 수치는 회사가 자기 제품에서 잰 값이다. 같은 모델도 버전이 바뀌면 적정 점수가 달라져서, 회사는 사람이 라벨링한 자료로 다시 맞추는 동안 시험 가동 상태를 유지했다.</p></section>
+<section class="sources"><h2>원문</h2>
+<ul>
+<li><a href="https://newsletter.posthog.com/p/decision-models">Not Everything Needs an LLM</a><span class="host">newsletter.posthog.com</span></li>
+</ul>
+</section>
+</article>
+<nav class="more">
+<a href="gpt-62-astra-sol.html"><small>← 앞 기사</small><span>오픈AI, GPT-6.2 아스트라와 솔을 내놓고 API 값을 20% 내렸다</span></a><a class="next" href="renderlint-ui-linter.html"><small>다음 기사 →</small><span>AI가 만든 화면의 깨진 글자를 브라우저로 잡아내는 검사 도구</span></a></nav>
+<div class="foot"><a href="index.html">11/18(수) 호 전체</a> · <a href="../index.html">지난 호 모두 보기</a></div>
+</div>
+</body>
+</html>
