@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 컴퓨터에서 도는 AI 봇 팀, 위험한 단계는 승인을 받는다 — AI 조간 11/26(목)</title>
+<meta name="description" content="PiBot은 역할을 가진 AI 봇 여러 개가 내 PC에서 파일을 고치고 명령을 실행하는 데스크톱 앱이다. 모든 위험한 단계는 사용자 승인을 기다린다.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="내 컴퓨터에서 도는 AI 봇 팀, 위험한 단계는 승인을 받는다">
+<meta property="og:description" content="PiBot은 역할을 가진 AI 봇 여러 개가 내 PC에서 파일을 고치고 명령을 실행하는 데스크톱 앱이다. 모든 위험한 단계는 사용자 승인을 기다린다.">
+<meta property="og:url" content="https://serenwoon.github.io/ai-jogan/2026-11-26/pibot-local-agent-team.html">
+<meta property="og:image" content="https://repository-images.githubusercontent.com/1466272233/d5c85074-b3c6-47e3-ac51-300e4c0d5cac">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a8432a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23fffdf8' font-family='serif'%3E%EC%A1%B0%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f2efe8; --paper: #fffdf8; --ink: #1f1d1a; --text: #3f3b35; --muted: #8b8478;
+    --rule: #e7e1d6; --accent: #a8432a; --tint: #f5efe3;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", sans-serif;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", AppleMyungjo, Batang, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161513; --paper: #1d1c19; --ink: #f1ece3; --text: #d6d0c5; --muted: #958e82;
+            --rule: #34312c; --accent: #e07a5c; --tint: #27241f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.8; -webkit-text-size-adjust: 100%; }
+  a { color: inherit; }
+  .page { max-width: 680px; margin: 0 auto; background: var(--paper); min-height: 100vh; padding: 0 0 48px; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 24px 14px; border-bottom: 3px double var(--ink); }
+  .brand { font-family: var(--serif); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -0.5px; }
+  .date { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .date:hover, .brand:hover { color: var(--accent); }
+  article { padding: 0 24px; }
+  .kicker { margin: 28px 0 0; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
+  h1 { font-family: var(--serif); font-size: clamp(24px, 6vw, 32px); line-height: 1.35; font-weight: 700; color: var(--ink); letter-spacing: -0.8px; margin: 10px 0 0; text-wrap: balance; word-break: keep-all; }
+  .tags { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 12px; line-height: 1.7; color: var(--muted); background: var(--bg); padding: 0 8px; }
+  .lead { font-size: 18px; line-height: 1.7; color: var(--ink); margin: 18px 0 0; word-break: keep-all; }
+  figure { margin: 24px -24px 0; }
+  figure img { display: block; width: 100%; height: auto; background: var(--tint); }
+  .body { margin: 26px 0 0; }
+  p { margin: 0; white-space: pre-line; word-break: keep-all; }
+  h2 { font-family: var(--serif); font-size: 19px; color: var(--ink); margin: 34px 0 8px; letter-spacing: -0.3px; }
+  .work { margin: 34px 0 0; background: var(--tint); padding: 18px 20px; }
+  .work h2, .note h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson { margin: 34px 0 0; border-left: 3px solid var(--accent); padding: 2px 0 2px 18px; }
+  .lesson h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); margin: 0 0 6px; }
+  .lesson p { font-family: var(--serif); font-size: 18px; line-height: 1.7; color: var(--ink); }
+  .note { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .note h2 { color: var(--muted); }
+  .note p { font-size: 14px; color: var(--muted); }
+  .sources { margin: 34px 0 0; border-top: 1px solid var(--rule); padding: 16px 0 0; }
+  .sources h2 { font-family: var(--sans); font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted); margin: 0 0 6px; }
+  .sources ul { margin: 0; padding: 0; list-style: none; }
+  .sources li { padding: 6px 0; }
+  .sources a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+  .sources a:hover { text-decoration-color: var(--accent); }
+  .host { display: block; font-size: 12px; color: var(--muted); }
+  nav.more { margin: 40px 24px 0; border-top: 3px double var(--ink); padding: 14px 0 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  nav.more a { text-decoration: none; display: block; }
+  nav.more small { display: block; font-size: 12px; color: var(--muted); }
+  nav.more span { font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1.5; }
+  nav.more a:hover span { color: var(--accent); }
+  nav.more .next { text-align: right; grid-column: 2; }
+  .foot { margin: 28px 24px 0; font-size: 13px; color: var(--muted); }
+  .foot a { color: var(--muted); }
+  @media (min-width: 700px) { .page { margin-top: 24px; min-height: 0; } figure { margin: 24px 0 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="top">
+<a class="brand" href="index.html">AI 조간</a>
+<a class="date" href="index.html">2026년 11월 26일 목요일</a>
+</header>
+<article>
+<div class="kicker">깃허브·스킬 픽</div>
+<h1>내 컴퓨터에서 도는 AI 봇 팀, 위험한 단계는 승인을 받는다</h1>
+<div class="tags"><span class="tag">Apache-2.0</span><span class="tag">데스크톱 에이전트</span><span class="tag">MCP</span></div><p class="lead">PiBot은 역할을 가진 AI 봇 여러 개가 내 PC에서 파일을 고치고 명령을 실행하는 데스크톱 앱이다. 모든 위험한 단계는 사용자 승인을 기다린다.</p>
+<figure><img src="https://repository-images.githubusercontent.com/1466272233/d5c85074-b3c6-47e3-ac51-300e4c0d5cac" alt="내 컴퓨터에서 도는 AI 봇 팀, 위험한 단계는 승인을 받는다" loading="lazy" referrerpolicy="no-referrer"></figure>
+<div class="body">
+<p>PiBot은 개발자·연구자·작문가 같은 역할을 준 봇을 만들어 단체 대화방에 넣는 앱이다. 조정 봇이 계획을 짜면 사용자가 확인한 뒤 실행하고, 봇은 사용자가 정한 폴더 안에서만 일한다. 대화와 파일은 내 컴퓨터에 남고, 승인·명령 기록은 감사 로그에 쌓인다.</p>
+<h2>왜 지금</h2>
+<p>에이전트에게 업무를 맡기되 통제를 어떻게 붙일지가 올해 화두다. 이 앱은 승인, 샌드박스, 감사 로그를 처음부터 기본 구조로 넣었다. 수집 시점에 별 605개를 얻었다.</p>
+</div>
+<section class="work"><h2>내 일에 써 본다면</h2><p>매주 월요일 폴더에 쌓이는 회의 메모를 정해진 시간에 정리하게 하는 루틴을 걸어 두는 식이다. 파일 변경 목록을 보고 승인 버튼을 누르는 사람은 여전히 나다.</p></section>
+<section class="lesson"><h2>가져갈 점</h2><p>자동화는 승인 지점을 먼저 설계하고 범위를 넓힌다. 폴더 제한, 실행 전 승인, 기록 남기기 세 가지는 어떤 도구에도 요구할 만하다.</p></section>
+<section class="note"><h2>조심할 점</h2><p>공개 설명만 읽었고 직접 설치해 보지는 않았다. 쓰는 모델 제공업체에는 입력한 내용이 전달된다. 설치 파일은 공식 사이트에서만 받아야 한다.</p></section>
+<section class="sources"><h2>원문</h2>
+<ul>
+<li><a href="https://github.com/w01fb0ss/PiBot">w01fb0ss/PiBot</a><span class="host">github.com</span></li>
+</ul>
+</section>
+</article>
+<nav class="more">
+<a href="mobile-agent-testers.html"><small>← 앞 기사</small><span>AI 테스터 20대를 가상 휴대폰에 풀어 앱 버그를 찾는 저장소</span></a><a class="next" href="check-usage-menu.html"><small>다음 기사 →</small><span>챗GPT 설정의 사용량 메뉴를 열어 남은 한도를 확인해 본다</span></a></nav>
+<div class="foot"><a href="index.html">11/26(목) 호 전체</a> · <a href="../index.html">지난 호 모두 보기</a></div>
+</div>
+</body>
+</html>
